@@ -1,4 +1,4 @@
-#ifndef CLASS_PRIVATE_HANDLE_HPP_2015_11_13
+﻿#ifndef CLASS_PRIVATE_HANDLE_HPP_2015_11_13
 #define CLASS_PRIVATE_HANDLE_HPP_2015_11_13
 
 #include "AADefine.h"
@@ -6,10 +6,10 @@
 
 namespace ArmyAnt {
 
-//�������ڱ���������C++���е�˽�г�Ա����˽�г�Ա������cppʵ���ļ�����һ�����У�public������ԭ������һ�� const T_Handle handle ���г�Ա
-//ʵ���ļ�����һ��static����ʵ������Ϊ˽�г�Ա��������ԭ��ĺ�������ͨ��handle�͹���������ȡ˽�г�Ա
-//T_Out��������ԭ���ͣ�T_In������������˽�г�Ա�����ͣ�T_Handle������������ͣ��ɴ�����������ѡ��Ĭ��ΪDWORD
-//ʹ��ʱ����Ҫ�ѹ�����ʵ������T_In����κ���Ϣ����¶��cpp�ļ�֮��
+//此类用于保护性隐藏C++类中的私有成员，将私有成员定义在cpp实现文件的另一个类中（public），而原类增加一个 const T_Handle handle 公有成员
+//实现文件定义一个static本类实例，作为私有成员管理器，原类的函数体内通过handle和管理器来获取私有成员
+//T_Out参数代表原类型，T_In参数代表包含私有成员的类型，T_Handle代表句柄的类型，可从任意整型中选择，默认为DWORD
+//使用时，不要把管理器实例或者T_In类的任何信息，暴露在cpp文件之外
 
 template <class T_Out, class T_In, class T_Handle = DWORD>
 class ClassPrivateHandleManager

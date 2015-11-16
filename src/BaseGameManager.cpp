@@ -1,4 +1,9 @@
 #include "BaseGameManager.h"
+#include "Graphics.h"
+
+namespace AA_Engine {
+
+namespace AA_Graphic {
 
 BaseGameManager::BaseGameManager()
 {
@@ -12,9 +17,9 @@ BaseGameManager::~BaseGameManager()
 }
 LRESULT BaseGameManager::messageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (initialized)
+	if(initialized)
 	{
-		switch (msg)
+		switch(msg)
 		{
 			case WM_DESTROY:
 				PostQuitMessage(0);
@@ -62,38 +67,38 @@ LRESULT BaseGameManager::messageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 				return 0;
 		}
 	}
-	return DefWindowProc(hwnd,msg,wParam,lParam); // let Windows OS handle it
+	return DefWindowProc(hwnd, msg, wParam, lParam); // let Windows OS handle it
 }
-void BaseGameManager::Initialize(HINSTANCE hInstance,HWND hw)
+void BaseGameManager::Initialize(HINSTANCE hInstance, HWND hw)
 {
 	hwnd = hw; //save windows handle
 
 	//initialze graphics
-	 m_graphics = new Graphics();
-	 m_graphics->Initialize(hInstance,hw);
+	m_graphics = new Graphics();
+	m_graphics->Initialize(hInstance, hw);
 
 	//initialize input, do not capture mouse
 	//input->initialze(hwnd,false);
 
 	//set up high resolution timer
-	if (QueryPerformanceFrequency(&timerFreq) == false)//the function stores the frequency of the high-performance timer in the variable timerFreq
-		throw(GameError(gameErrorNS::FATAL_ERROR,"Error initialzizing high res timer"));
+	if(QueryPerformanceFrequency(&timerFreq) == false)//the function stores the frequency of the high-performance timer in the variable timerFreq
+		throw(GameError(gameErrorNS::FATAL_ERROR, "Error initialzizing high res timer"));
 	QueryPerformanceCounter(&timeStart);//get start time
 	//initializetion completed!
 	initialized = true;
 }
 void BaseGameManager::Run(HWND hw)
 {
-	if (m_graphics == NULL)
+	if(m_graphics == NULL)
 		return;
-	
+
 	//caculate elapsed time of last frame, save in framTime
 	QueryPerformanceCounter(&timeEnd);
 
 	frameTime = (float)(timeEnd.QuadPart - timeStart.QuadPart)
-				/(float)timerFreq.QuadPart;
-	
-	if (frameTime < MIN_FRAME_TIME)
+		/ (float)timerFreq.QuadPart;
+
+	if(frameTime < MIN_FRAME_TIME)
 	{
 		sleepTime = (DWORD)((MIN_FRAME_TIME - frameTime) * 1000);
 		timeBeginPeriod(1);
@@ -102,16 +107,16 @@ void BaseGameManager::Run(HWND hw)
 		return;
 	}
 
-	if (frameTime > 0.0)
+	if(frameTime > 0.0)
 	{
 		fps = (fps*0.99f) + (0.01f / frameTime);
 	}
 
 	timeStart = timeEnd;
-//=========================================================================
-//Run logic
-//=======================================================================
-	if (!paused)
+	//=========================================================================
+	//Run logic
+	//=======================================================================
+	if(!paused)
 	{
 		//Update();
 		//Ai()
@@ -136,4 +141,8 @@ void BaseGameManager::DeleteAll()
 void BaseGameManager::ReleaseAll()
 {
 	SAFF_DELETE(m_graphics);
+}
+
+}
+
 }

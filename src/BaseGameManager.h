@@ -7,6 +7,10 @@
 #include"Graphics.h"
 #include"Constants.h"
 
+namespace AA_Engine {
+
+namespace AA_Graphic {
+
 class BaseGameManager
 {
 protected:
@@ -25,14 +29,14 @@ protected:
 public:
 	BaseGameManager();
 	virtual ~BaseGameManager();
-//==========================================================================================
-// basic function
-//==========================================================================================
-	//window message handler
-	LRESULT messageHandler(HWND hwnd,UINT msg, WPARAM wParam,LPARAM lParam);
+	//==========================================================================================
+	// basic function
+	//==========================================================================================
+		//window message handler
+	LRESULT messageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	//initalize the game
-	virtual void Initialize(HINSTANCE hInstance,HWND hwnd);
+	virtual void Initialize(HINSTANCE hInstance, HWND hwnd);
 
 	//call run repeatedly by the main message loop in WinMain
 	virtual void Run(HWND hw);
@@ -46,17 +50,19 @@ public:
 
 	//exit the game
 	void ExitGame() { PostMessage(hwnd, WM_DESTROY, 0, 0); }
-//==========================================================================================
-// Graphics stuff
-//==========================================================================================
-	//render game items
+	//==========================================================================================
+	// Graphics stuff
+	//==========================================================================================
+		//render game items
 	virtual void RenderGame();
 
 	//handle lost graphics device
 	virtual void HandleLostGraphicsDevice();
 
-	
 
-		
 };
+
+}
+
+}
 #endif
