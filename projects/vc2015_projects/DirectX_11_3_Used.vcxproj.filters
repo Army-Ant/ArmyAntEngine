@@ -4,15 +4,57 @@
     <Filter Include="1.base">
       <UniqueIdentifier>{4ca978c7-7a03-495d-8a46-60a5fc57c155}</UniqueIdentifier>
     </Filter>
+    <Filter Include="2.mainOutput">
+      <UniqueIdentifier>{75bc9e37-f913-434c-8317-54d394c93e30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.D3dRefLib">
+      <UniqueIdentifier>{3c5671a5-7865-4fb8-a681-5b85cebc866b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4.GraphicAlgorithm">
+      <UniqueIdentifier>{ea6ba590-fd78-41ad-b4c8-66c9d45c98a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\base.hpp">
       <Filter>1.base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\AA_D3D11_3_used.h">
+      <Filter>2.mainOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\D3dBase.h">
+      <Filter>3.D3dRefLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\D3d11Use_start.h">
+      <Filter>3.D3dRefLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Animation.h">
+      <Filter>4.GraphicAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BaseGameManager.h">
+      <Filter>4.GraphicAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Constants.h">
+      <Filter>4.GraphicAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gameError.h">
+      <Filter>4.GraphicAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Graphics.h">
+      <Filter>4.GraphicAlgorithm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\dllmain.cpp">
       <Filter>1.base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\D3dBase.cpp">
+      <Filter>3.D3dRefLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\BaseGameManager.cpp">
+      <Filter>4.GraphicAlgorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics.cpp">
+      <Filter>4.GraphicAlgorithm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

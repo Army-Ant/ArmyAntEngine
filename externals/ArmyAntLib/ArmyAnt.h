@@ -13,6 +13,7 @@
 #define ARMY_ANT_H_2015_11_11
 
 #include "include/AADefine.h"
+#include "include/AAClassPrivateHandle.hpp"
 #include "include/AAFile.h"
 
 

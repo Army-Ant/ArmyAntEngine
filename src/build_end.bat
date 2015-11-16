@@ -8,5 +8,8 @@ set ConfigType=%1
 set ProjectPath=%2
 set TargetName=%3
 
+:CopyArmyAntLibFiles
+
+
 :End
 @echo on

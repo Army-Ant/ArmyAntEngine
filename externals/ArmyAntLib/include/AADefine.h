@@ -36,7 +36,8 @@ typedef unsigned _int64 LWORD;
 #define max(x,y) ((x>=y)?(x):(y))
 #endif
 
-#define AA_FORBID_EQUAL_OPR(typen) private: virtual typen operator=(typen Value){return Value;}
-#define AA_FORBID_COPY_CTOR(typen) private: virtual typen(typen&Value){}
+#define AA_FORBID_EQUAL_OPR(typen) private: void operator=(typen&){}
+#define AA_FORBID_COPY_CTOR(typen) private: typen(typen&){}
+#define AA_FORBID_COPY_CTOR_WITHCONST(typen, fconstIni) private: typen(typen&):fconstIni{}
 
 #endif // A_A_DEFINE_H_2015_11_11
