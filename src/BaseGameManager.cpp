@@ -82,14 +82,14 @@ void BaseGameManager::Initialize(HINSTANCE hInstance, HWND hw)
 
 	//set up high resolution timer
 	if(QueryPerformanceFrequency(&timerFreq) == false)//the function stores the frequency of the high-performance timer in the variable timerFreq
-		throw(GameError(gameErrorNS::FATAL_ERROR, "Error initialzizing high res timer"));
+		throw(GameError(GameError::FATAL_ERROR, "Error initialzizing high res timer"));
 	QueryPerformanceCounter(&timeStart);//get start time
 	//initializetion completed!
 	initialized = true;
 }
 void BaseGameManager::Run(HWND hw)
 {
-	if(m_graphics == NULL)
+	if(m_graphics == nullptr)
 		return;
 
 	//caculate elapsed time of last frame, save in framTime
@@ -140,7 +140,7 @@ void BaseGameManager::DeleteAll()
 }
 void BaseGameManager::ReleaseAll()
 {
-	SAFF_DELETE(m_graphics);
+	AA_SAFE_DEL(m_graphics);
 }
 
 }

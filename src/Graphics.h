@@ -9,11 +9,14 @@
 #include <D3Dx11.h>
 #include <xnamath.h>
 #include <DxErr.h>
-#include "gameError.h"
+#include "GraphicDefine.h"
 
-namespace graphicsNS
-{
-	enum DISPLAY_MODE {TOGGLE,FULLSCREEN,WINDOW};
+namespace AA_Engine {
+
+namespace AA_Graphic {
+
+namespace graphicsNS {
+enum DISPLAY_MODE { TOGGLE, FULLSCREEN, WINDOW };
 }
 
 //================================================================
@@ -40,7 +43,7 @@ protected:
 	HRESULT   m_hresult;
 	HWND	  m_hwnd;
 	HINSTANCE m_hInstance;
-	 
+
 	D3D_DRIVER_TYPE		    m_driverType;
 	D3D_FEATURE_LEVEL	    m_featureLevel;
 
@@ -54,7 +57,7 @@ public:
 	virtual ~Graphics();
 	void ReleaseAll();
 
-	bool Initialize(HINSTANCE hinstance,HWND hw);
+	bool Initialize(HINSTANCE hinstance, HWND hw);
 
 	//Display the offscreen backbuffer to the screen
 	HRESULT showBackBuffer();
@@ -70,4 +73,8 @@ public:
 	virtual void UnloadContent();
 
 };
+
+}
+
+}
 #endif

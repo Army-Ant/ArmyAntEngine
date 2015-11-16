@@ -4,6 +4,9 @@
 #include <d3d11_2.h>
 #include <d3dx11.h> 
 
+//你的unresolved symbol是因为没有载入这个winSDK的lib
+#pragma comment(lib,"winmm.lib")
+
 int WINAPI DllMain(_In_ HANDLE _HDllHandle, _In_ DWORD _Reason, _In_opt_ LPVOID _Reserved)
 {
 	switch(_Reason)

@@ -13,6 +13,12 @@
     <Filter Include="4.GraphicAlgorithm">
       <UniqueIdentifier>{ea6ba590-fd78-41ad-b4c8-66c9d45c98a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="5.EngineInterface">
+      <UniqueIdentifier>{4ff936c8-d9d7-4e22-8ad6-5d4102b7d168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6.docs">
+      <UniqueIdentifier>{8b98d0fb-2d21-4cfc-bb3b-7b6e51a6c379}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\base.hpp">
@@ -27,19 +33,13 @@
     <ClInclude Include="..\..\src\D3d11Use_start.h">
       <Filter>3.D3dRefLib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\Animation.h">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\BaseGameManager.h">
       <Filter>4.GraphicAlgorithm</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\Constants.h">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\gameError.h">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\Graphics.h">
+      <Filter>4.GraphicAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GraphicDefine.h">
       <Filter>4.GraphicAlgorithm</Filter>
     </ClInclude>
   </ItemGroup>
@@ -64,5 +64,10 @@
     <None Include="..\..\src\build_end.bat">
       <Filter>1.base</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Rule.txt">
+      <Filter>6.docs</Filter>
+    </Text>
   </ItemGroup>
 </Project>

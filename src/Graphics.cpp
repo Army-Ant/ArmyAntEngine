@@ -1,13 +1,17 @@
 #include "Graphics.h"
 
+namespace AA_Engine {
+
+namespace AA_Graphic {
+
 Graphics::Graphics()
 {
 	m_driverType = D3D_DRIVER_TYPE_NULL;
 	m_featureLevel = D3D_FEATURE_LEVEL_11_0;
-	m_pD3dDevice = NULL;
-	m_pD3dContext = NULL;
-	m_pSwapChain = NULL;
-	m_pBackBufferTarget = NULL;
+	m_pD3dDevice = nullptr;
+	m_pD3dContext = nullptr;
+	m_pSwapChain = nullptr;
+	m_pBackBufferTarget = nullptr;
 }
 Graphics::~Graphics()
 {
@@ -15,11 +19,11 @@ Graphics::~Graphics()
 }
 bool Graphics::Initialize(HINSTANCE hinstance, HWND hw)
 {
-	m_hInstance= hinstance;
+	m_hInstance = hinstance;
 	m_hwnd = hw;
-//===========================================================
-// Specifying the driver type and feature levels.
-//===========================================================
+	//===========================================================
+	// Specifying the driver type and feature levels.
+	//===========================================================
 	RECT dimensions;
 	GetClientRect(m_hwnd, &dimensions);
 
@@ -42,9 +46,9 @@ bool Graphics::Initialize(HINSTANCE hinstance, HWND hw)
 	};
 
 	unsigned int totalFeatureLevels = ARRAYSIZE(featureLevels);
-//===========================================================
-// The swap chain description
-//===========================================================
+	//===========================================================
+	// The swap chain description
+	//===========================================================
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 	swapChainDesc.BufferCount = 1;
@@ -60,9 +64,9 @@ bool Graphics::Initialize(HINSTANCE hinstance, HWND hw)
 	swapChainDesc.SampleDesc.Quality = 0;
 
 	unsigned int creationFlags = 0;
-//===========================================================
-//Create the Direct3D device, context, and swap chain
-//===========================================================
+	//===========================================================
+	//Create the Direct3D device, context, and swap chain
+	//===========================================================
 #ifdef _DEBUG
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
@@ -70,52 +74,52 @@ bool Graphics::Initialize(HINSTANCE hinstance, HWND hw)
 	HRESULT result;
 	unsigned int driver = 0;
 
-	for (driver = 0; driver < totalDriverTypes; ++driver)
+	for(driver = 0; driver < totalDriverTypes; ++driver)
 	{
 		result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0, creationFlags,
-			featureLevels, totalFeatureLevels,
-			D3D11_SDK_VERSION, &swapChainDesc, &m_pSwapChain,
-			&m_pD3dDevice, &m_featureLevel, &m_pD3dContext);
+											   featureLevels, totalFeatureLevels,
+											   D3D11_SDK_VERSION, &swapChainDesc, &m_pSwapChain,
+											   &m_pD3dDevice, &m_featureLevel, &m_pD3dContext);
 
-		if (SUCCEEDED(result))
+		if(SUCCEEDED(result))
 		{
 			m_driverType = driverTypes[driver];
 			break;
 		}
 	}
 
-	if (FAILED(result))
+	if(FAILED(result))
 	{
-		DXTRACE_MSG("Failed to create the Direct3D device!");
+		//DXTRACE_MSG("Failed to create the Direct3D device!");
 		return false;
 	}
-//=================================================================
-//Render Target View Creation
-//==============================================================
+	//=================================================================
+	//Render Target View Creation
+	//==============================================================
 	ID3D11Texture2D* backBufferTexture;
 
 	result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferTexture);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
-		DXTRACE_MSG("Failed to get the swap chain back buffer!");
+		//DXTRACE_MSG("Failed to get the swap chain back buffer!");
 		return false;
 	}
 
 	result = m_pD3dDevice->CreateRenderTargetView(backBufferTexture, 0, &m_pBackBufferTarget);
 
-	if (backBufferTexture)
+	if(backBufferTexture)
 		backBufferTexture->Release();
 
-	if (FAILED(result))
+	if(FAILED(result))
 	{
-		DXTRACE_MSG("Failed to create the render target view!");
+		//DXTRACE_MSG("Failed to create the render target view!");
 		return false;
 	}
 
 	m_pD3dContext->OMSetRenderTargets(1, &m_pBackBufferTarget, 0);
-//===================================================================
-//The creation and setting of a full-screen viewport
-//===================================================================
+	//===================================================================
+	//The creation and setting of a full-screen viewport
+	//===================================================================
 	D3D11_VIEWPORT viewport;
 	viewport.Width = static_cast<float>(width);
 	viewport.Height = static_cast<float>(height);
@@ -125,22 +129,22 @@ bool Graphics::Initialize(HINSTANCE hinstance, HWND hw)
 	viewport.TopLeftY = 0.0f;
 
 	m_pD3dContext->RSSetViewports(1, &viewport);
-//======================================================================
+	//======================================================================
 	return LoadContent();
 }
 void Graphics::ReleaseAll()
 {
 	UnloadContent();
-	if (m_pBackBufferTarget)
+	if(m_pBackBufferTarget)
 		m_pBackBufferTarget->Release();
-	if (m_pSwapChain)
+	if(m_pSwapChain)
 		m_pSwapChain->Release();
-	if (m_pD3dContext)
+	if(m_pD3dContext)
 		m_pD3dContext->Release();
 
-	m_pBackBufferTarget = NULL;
-	m_pSwapChain = NULL;
-	m_pD3dContext = NULL;
+	m_pBackBufferTarget = nullptr;
+	m_pSwapChain = nullptr;
+	m_pD3dContext = nullptr;
 }
 void Graphics::UnloadContent()
 {
@@ -150,4 +154,8 @@ bool Graphics::LoadContent()
 {
 	//..........
 	return true;
+}
+
+}
+
 }

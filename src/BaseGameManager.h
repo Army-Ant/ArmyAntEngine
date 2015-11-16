@@ -4,28 +4,16 @@
 #include<Windows.h>
 #include<mmsystem.h>
 #include"gameError.h"
-#include"Graphics.h"
 #include"Constants.h"
 
 namespace AA_Engine {
 
 namespace AA_Graphic {
 
+class Graphics;
+
 class BaseGameManager
 {
-protected:
-	HWND hwnd; // for window handle
-	LARGE_INTEGER timeStart;
-	LARGE_INTEGER timeEnd;
-	LARGE_INTEGER timerFreq;
-	float frameTime;
-	float fps;
-	DWORD sleepTime;
-	bool  paused;
-	bool initialized;
-	//====================
-	Graphics* m_graphics;
-
 public:
 	BaseGameManager();
 	virtual ~BaseGameManager();
@@ -58,8 +46,19 @@ public:
 
 	//handle lost graphics device
 	virtual void HandleLostGraphicsDevice();
-
-
+	
+protected:
+	HWND hwnd; // for window handle
+	LARGE_INTEGER timeStart;
+	LARGE_INTEGER timeEnd;
+	LARGE_INTEGER timerFreq;
+	float frameTime;
+	float fps;
+	DWORD sleepTime;
+	bool  paused;
+	bool initialized;
+	//====================
+	Graphics* m_graphics;
 };
 
 }

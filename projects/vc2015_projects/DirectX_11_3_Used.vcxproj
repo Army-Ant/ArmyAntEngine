@@ -104,13 +104,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\AA_D3D11_3_used.h" />
-    <ClInclude Include="..\..\src\Animation.h" />
+    <ClInclude Include="..\..\src\GraphicDefine.h" />
     <ClInclude Include="..\..\src\base.hpp" />
     <ClInclude Include="..\..\src\BaseGameManager.h" />
-    <ClInclude Include="..\..\src\Constants.h" />
     <ClInclude Include="..\..\src\D3d11Use_start.h" />
     <ClInclude Include="..\..\src\D3dBase.h" />
-    <ClInclude Include="..\..\src\gameError.h" />
     <ClInclude Include="..\..\src\Graphics.h" />
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +120,9 @@
   <ItemGroup>
     <None Include="..\..\src\build_end.bat" />
     <None Include="..\..\src\build_start.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Rule.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
