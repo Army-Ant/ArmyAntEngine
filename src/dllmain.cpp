@@ -1,10 +1,10 @@
-#include <cstdarg>
+ï»¿#include <cstdarg>
 #include "AA_D3D11_3_used.h"
 
 #include <d3d11_2.h>
 #include <d3dx11.h> 
 
-//ÄãµÄunresolved symbolÊÇÒòÎªÃ»ÓĞÔØÈëÕâ¸öwinSDKµÄlib
+//ä½ çš„unresolved symbolæ˜¯å› ä¸ºæ²¡æœ‰è½½å…¥è¿™ä¸ªwinSDKçš„lib
 #pragma comment(lib,"winmm.lib")
 
 int WINAPI DllMain(_In_ HANDLE _HDllHandle, _In_ DWORD _Reason, _In_opt_ LPVOID _Reserved)
@@ -44,17 +44,17 @@ HRESULT CreateDevice(HWND hwnd)
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
-	swapChainDesc.BufferCount = 1;		//»º´æÒ³Ãæ×ÜÊı
-	swapChainDesc.BufferDesc.Width = width;		//»º´æÒ³¿í¶È
-	swapChainDesc.BufferDesc.Height = height;	//»º´æÒ³¸ß¶È
-	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//»º´æ¸ñÊ½
-	swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;		//Ã¿ÖÜÆÚË¢ĞÂ´ÎÊı
-	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;		//ÖÜÆÚ³¤¶È(Ãë)
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//»º´æÓÃ·¨
-	swapChainDesc.OutputWindow = hwnd;		//´°¿Ú¾ä±ú
-	swapChainDesc.Windowed = true;		//È«ÆÁÄ£Ê½ÖĞ£¬ÊÇ·ñ¼ÌĞøÊ¹ÓÃÔ­ÏÈµÄ³ß´ç
-	swapChainDesc.SampleDesc.Count = 1;		//È¡ÑùÊıÁ¿
-	swapChainDesc.SampleDesc.Quality = 0;	//È¡ÑùÖÊÁ¿
+	swapChainDesc.BufferCount = 1;		//ç¼“å­˜é¡µé¢æ€»æ•°
+	swapChainDesc.BufferDesc.Width = width;		//ç¼“å­˜é¡µå®½åº¦
+	swapChainDesc.BufferDesc.Height = height;	//ç¼“å­˜é¡µé«˜åº¦
+	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//ç¼“å­˜æ ¼å¼
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;		//æ¯å‘¨æœŸåˆ·æ–°æ¬¡æ•°
+	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;		//å‘¨æœŸé•¿åº¦(ç§’)
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//ç¼“å­˜ç”¨æ³•
+	swapChainDesc.OutputWindow = hwnd;		//çª—å£å¥æŸ„
+	swapChainDesc.Windowed = true;		//å…¨å±æ¨¡å¼ä¸­ï¼Œæ˜¯å¦ç»§ç»­ä½¿ç”¨åŸå…ˆçš„å°ºå¯¸
+	swapChainDesc.SampleDesc.Count = 1;		//å–æ ·æ•°é‡
+	swapChainDesc.SampleDesc.Quality = 0;	//å–æ ·è´¨é‡
 
 	unsigned int creationFlags = 0;
 #ifdef _DEBUG   

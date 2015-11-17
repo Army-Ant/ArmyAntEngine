@@ -1,4 +1,4 @@
-#ifndef D3D_BASE_H_2015_11_13
+﻿#ifndef D3D_BASE_H_2015_11_13
 #define D3D_BASE_H_2015_11_13
 
 #include "D3d11Use_start.h"

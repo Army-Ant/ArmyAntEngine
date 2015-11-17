@@ -1,4 +1,4 @@
-#ifndef A_A_D3D11_3_USED_H_2015_11_13
+﻿#ifndef A_A_D3D11_3_USED_H_2015_11_13
 #define A_A_D3D11_3_USED_H_2015_11_13
 
 #include "D3dBase.h"

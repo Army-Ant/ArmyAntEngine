@@ -1,4 +1,4 @@
-#include <windows.h>
+ï»¿#include <windows.h>
 #include "AA_D3D11_3_used.h"
 
 // LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -26,17 +26,17 @@
 // 	UNREFERENCED_PARAMETER(hPrevInstance);
 // 	UNREFERENCED_PARAMETER(cmdLine);
 // 
-// 	//Éè¶¨´°¿ÚÊôĞÔ
+// 	//è®¾å®šçª—å£å±æ€§
 // 	wndClass.cbSize = sizeof(WNDCLASSEX);
-// 	wndClass.style = CS_HREDRAW | CS_VREDRAW;	//´°Ìå·ç¸ñ
-// 	wndClass.lpfnWndProc = WndProc;		//ÏûÏ¢»Øµ÷
-// 	wndClass.hInstance = hInstance;		//½ø³Ì¾ä±ú
-// 	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);		//Êó±êÖ¸Õë×´Ì¬
-// 	wndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);	//´°¿Ú±³¾°É«
-// 	wndClass.lpszMenuName = NULL;		//²Ëµ¥
-// 	wndClass.lpszClassName = "DX11BookWindowClass";		//×¢²áÀàÃû
+// 	wndClass.style = CS_HREDRAW | CS_VREDRAW;	//çª—ä½“é£æ ¼
+// 	wndClass.lpfnWndProc = WndProc;		//æ¶ˆæ¯å›è°ƒ
+// 	wndClass.hInstance = hInstance;		//è¿›ç¨‹å¥æŸ„
+// 	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);		//é¼ æ ‡æŒ‡é’ˆçŠ¶æ€
+// 	wndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);	//çª—å£èƒŒæ™¯è‰²
+// 	wndClass.lpszMenuName = NULL;		//èœå•
+// 	wndClass.lpszClassName = "DX11BookWindowClass";		//æ³¨å†Œç±»å
 // 
-// 	//×¢²á´°¿Ú
+// 	//æ³¨å†Œçª—å£
 // 	if(!RegisterClassExA(&wndClass))
 // 		return -1;
 // 
@@ -44,7 +44,7 @@
 // 	long ymid = GetSystemMetrics(SM_CYSCREEN) / 2;
 // 	long rcw = 640;
 // 	long rch = 480;
-// 	RECT rc = {0,0,rcw,rch};	//´°¿ÚÎ»ÖÃ´óĞ¡
+// 	RECT rc = {0,0,rcw,rch};	//çª—å£ä½ç½®å¤§å°
 // 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 // 	HWND hwnd = CreateWindowExA(0l, wndClass.lpszClassName, "Blank DirectX3D-11 Window", WS_OVERLAPPEDWINDOW, xmid - rcw / 2, ymid - rch / 2, rcw, rch, NULL, NULL, hInstance, NULL);
 // 	if(!hwnd)

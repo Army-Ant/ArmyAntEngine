@@ -1,4 +1,4 @@
-#ifndef D3D11_USE_START_H_2015_11_13
+﻿#ifndef D3D11_USE_START_H_2015_11_13
 #define D3D11_USE_START_H_2015_11_13
 
 #ifdef _WIN32
