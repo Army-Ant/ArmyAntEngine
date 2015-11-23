@@ -14,11 +14,10 @@
 
 #include "include/AADefine.h"
 #include "include/AAClassPrivateHandle.hpp"
+#include "include/AATripleMap.hpp"
 #include "include/AAFile.h"
 
 
 
-
-#include "include/AA_end.h"
 
 #endif // ARMY_ANT_H_2015_11_11

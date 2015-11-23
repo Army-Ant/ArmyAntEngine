@@ -2,7 +2,7 @@
 #define _GRAPHIC_DEFINE_H_2015_11_13
 
 #include "D3d11Use_start.h"
-#include "../ArmyAntLib/include/AADefine.h"
+#include "../externals/ArmyAntLib/include/AADefine.h"
 #include <string>
 
 namespace AA_Engine {

@@ -6,7 +6,7 @@
 #define AAAssert(x) assert(x)
 #elif defined _cplusplus
 #include <exception>
-#define AAAssert(x) if(!(x)) throw std::exception();
+#define AAAssert(x) {if(!(x)) throw std::exception();}
 #else
 #define AAAssert(x)
 #endif
@@ -36,8 +36,7 @@ typedef unsigned _int64 LWORD;
 #define max(x,y) ((x>=y)?(x):(y))
 #endif
 
-#define AA_FORBID_EQUAL_OPR(typen) private: void operator=(typen&){}
-#define AA_FORBID_COPY_CTOR(typen) private: typen(typen&){}
-#define AA_FORBID_COPY_CTOR_WITHCONST(typen, fconstIni) private: typen(typen&):fconstIni{}
+#define AA_FORBID_EQUAL_OPR(typen) public: typen& operator=(typen&)=delete
+#define AA_FORBID_COPY_CTOR(typen) public: typen(typen&)=delete
 
 #endif // A_A_DEFINE_H_2015_11_11

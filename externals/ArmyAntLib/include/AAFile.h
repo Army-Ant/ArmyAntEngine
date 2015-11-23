@@ -195,8 +195,8 @@ public:
 	const DWORD handle;
 	static FileStream*GetStream(DWORD handle);
 
-	AA_FORBID_EQUAL_OPR(FileStream)
-	AA_FORBID_COPY_CTOR_WITHCONST(FileStream, handle(0))
+	AA_FORBID_EQUAL_OPR(FileStream);
+	AA_FORBID_COPY_CTOR(FileStream);
 };
 
 } // namespace ArmyAnt
