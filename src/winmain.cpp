@@ -52,6 +52,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	ShowWindow(hwnd, nShow);
 
 	//Demo Initialize  
+	auto ret = new AA_Engine::AA_D3dRef::D3dBase(hwnd);
+	auto viewport = ret->CreateViewport(ret->CreateBuffer());
+	ret->ResetViewport(viewport);
+
 	MSG msg = {0};
 	while(msg.message != WM_QUIT)
 	{
@@ -67,5 +71,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 	}
 	//Demo Shutdown  
+	AA_SAFE_DEL(ret);
 	return static_cast<int>(msg.wParam);
 }

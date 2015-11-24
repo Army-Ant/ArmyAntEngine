@@ -11,8 +11,8 @@
 #define AAAssert(x)
 #endif
 
-#define AA_SAFE_DEL(x) if(x != nullptr){delete x; x = nullptr;}
-#define AA_SAFE_DELALL(x) if(x != nullptr){delete[] x; x = nullptr;}
+#define AA_SAFE_DEL(x) {if(x != nullptr){delete x; x = nullptr;}}
+#define AA_SAFE_DELALL(x) {if(x != nullptr){delete[] x; x = nullptr;}}
 
 #ifndef BYTE
 typedef unsigned char BYTE;

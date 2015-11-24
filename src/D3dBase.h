@@ -4,9 +4,8 @@
 #ifdef OS_WINDOWS
 #include <windows.h>
 
-#elif defined OS_UNIX
-#error "The DirectX 11 cannot run in Unix, Linux, OSX, iOS, Android, or any other system which used the Unix core"
-
+#else
+#error "The DirectX 11 cannot run in Unix, Linux, OSX, iOS, Android, or any other system which didn't use the Windows core"
 #endif
 
 #include "D3d11Use_start.h"
@@ -31,8 +30,8 @@ public:
 	bool ResetViewport(DWORD viewPortHandle);
 
 public:
-	static DWORD GetScreenWidth();
-	static DWORD GetScreenHeight();
+	static const DWORD GetScreenWidth();
+	static const DWORD GetScreenHeight();
 
 public:
 	const unsigned int handle;

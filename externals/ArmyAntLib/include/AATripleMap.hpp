@@ -33,8 +33,6 @@ public:
 
 public:
 	bool Equals(const SelfType&) const;
-	inline bool Empty() const;
-	inline bool Clear(const _First*newkey = nullptr);
 	inline Triad<_Second, _First, _Third> Swap12() const;
 	inline Triad<_Third, _Second, _First> Swap13() const;
 	inline Triad<_First, _Third, _Second> Swap23() const;
@@ -47,15 +45,11 @@ public:
 	inline bool operator != (const SelfType&) const;
 	inline bool operator == (const Iterator&) const;
 	inline bool operator != (const Iterator&) const;
-	inline bool operator == (std::nullptr_t) const;
-	inline bool operator != (std::nullptr_t) const;
-	inline operator bool() const;
-	inline bool operator !() const;
 
 public:
-	_First*first;
-	_Second*second;
-	_Third*third;
+	_First first;
+	_Second second;
+	_Third third;
 };
 
 template <class _Key, class _Value1, class _Value2>
@@ -158,11 +152,11 @@ public:
 	inline Iterator& operator +=(int);
 	inline Iterator& operator -=(int);
 	inline Iterator& operator ++();
-	inline Iterator& operator ++(int);
+	inline Iterator operator ++(int);
 	inline Iterator& operator --();
-	inline Iterator& operator --(int);
+	inline Iterator operator --(int);
 
-	inline const Element* operator->() const;
+	inline Element* operator->() const;
 	inline Element operator *();
 	inline const Element operator *() const;
 
@@ -188,54 +182,48 @@ private:
 
 template <class _First, class _Second, class _Third>
 Triad<_First, _Second, _Third>::Triad()
-	:first(nullptr), second(nullptr), third(nullptr)
 {
 }
 
 template <class _First, class _Second, class _Third>
 Triad<_First, _Second, _Third>::Triad(const _First& first, const _Second& second, const _Third& third)
-	: first(new _First(first)), second(new _Second(second)), third(new _Third(third))
+	: first(first), second(second), third(third)
 {
 }
 
 template <class _First, class _Second, class _Third>
 Triad<_First, _Second, _Third>::Triad(const Triad&value)
-	: first(first == nullptr ? nullptr : new _First(*value.first)), second(second == nullptr ? nullptr : new _Second(*value.second)), third(third == nullptr ? nullptr : new _Third(*value.third))
+	: first(value.first), second(value.second), third(value.third)
 {
 }
 
 template <class _First, class _Second, class _Third>
 Triad<_First, _Second, _Third>::Triad(const Iterator&value)
-	: first(value->first == nullptr ? nullptr : new _First(value->first)), second(value->second == nullptr ? nullptr : new _Second(value->second)), third(value->third == nullptr ? nullptr : new _Third(value->third))
+	: first(value->first), second(value->second), third(value->third)
 {
 }
 
 template <class _First, class _Second, class _Third>
 Triad<_First, _Second, _Third>& Triad<_First, _Second, _Third>::operator=(const SelfType&value)
 {
-	AA_SAFE_DEL(first);
-	AA_SAFE_DEL(second);
-	AA_SAFE_DEL(third);
-	first = value->first == nullptr ? nullptr : new _First(*value.first);
-	second = value->second == nullptr ? nullptr : new _Second(*value.second);
-	third = value->third == nullptr ? nullptr : new _Third(*value.third);
+	first = value.first;
+	second = value.second;
+	third = value.third;
+	return *this;
 }
 
 template <class _First, class _Second, class _Third>
 Triad<_First, _Second, _Third>& Triad<_First, _Second, _Third>::operator=(const Iterator&)
 {
-	AA_SAFE_DEL(first);
-	AA_SAFE_DEL(second);
-	AA_SAFE_DEL(third);
-	first = value->first == nullptr ? nullptr : new _First(value->first);
-	second = value->second == nullptr ? nullptr : new _Second(value->second);
-	third = value->third == nullptr ? nullptr : new _Third(value->third);
+	first = value->first;
+	second = value->second;
+	third = value->third;
+	return *this;
 }
 
 template <class _First, class _Second, class _Third>
 Triad<_First, _Second, _Third>::~Triad()
 {
-	Clear();
 }
 
 template <class _First, class _Second, class _Third>
@@ -243,42 +231,7 @@ bool Triad<_First, _Second, _Third>::Equals(const SelfType& value) const
 {
 	if(first == value.first && second == value.second && third == value.third)
 		return true;
-	if(first == nullptr && value.first != nullptr)
-		return false;
-	if(second == nullptr && value.second != nullptr)
-		return false;
-	if(third == nullptr && value.third != nullptr)
-		return false;
-	if(value.first == nullptr && first != nullptr)
-		return false;
-	if(value.second == nullptr && second != nullptr)
-		return false;
-	if(value.third == nullptr && third != nullptr)
-		return false;
-	if(first != value.first && first != value.first)
-		return false;
-	if(second != value.second && second != value.second)
-		return false;
-	if(third != value.third && third != value.third)
-		return false;
-	return true;
-}
-
-template <class _First, class _Second, class _Third>
-bool Triad<_First, _Second, _Third>::Empty() const
-{
-	return first == nullptr && second == nullptr && third == nullptr;
-}
-
-template <class _First, class _Second, class _Third>
-bool Triad<_First, _Second, _Third>::Clear(const _First*newkey/* = nullptr*/)
-{
-	AA_SAFE_DEL(first)
-		if(newkey != nullptr)
-			first = new _First(*newkey);
-	AA_SAFE_DEL(second)
-		AA_SAFE_DEL(third)
-		return true;
+	return false;
 }
 
 template <class _First, class _Second, class _Third>
@@ -341,30 +294,6 @@ bool Triad<_First, _Second, _Third>::operator!=(const Iterator&i) const
 	return operator!=(i);
 }
 
-template <class _First, class _Second, class _Third>
-bool Triad<_First, _Second, _Third>::operator==(std::nullptr_t) const
-{
-	return Empty();
-}
-
-template <class _First, class _Second, class _Third>
-bool Triad<_First, _Second, _Third>::operator!=(std::nullptr_t) const
-{
-	return !operator==(nullptr);
-}
-
-template <class _First, class _Second, class _Third>
-Triad<_First, _Second, _Third>::operator bool() const
-{
-	return operator==(nullptr);
-}
-
-template <class _First, class _Second, class _Third>
-bool Triad<_First, _Second, _Third>::operator!() const
-{
-	return !operator bool();
-}
-
 
 /****************************** Source Code : TripleMap ******************************************/
 
@@ -416,7 +345,7 @@ template <class _Key, class _Value1, class _Value2>
 std::pair<_Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::GetValues(const _Key& key) const
 {
 	auto ret = Find(key);
-	return std::pair<_Value1, _Value2>(ret->second, ret->third);
+	return ret->GetValue23();
 }
 
 template <class _Key, class _Value1, class _Value2>
@@ -680,7 +609,7 @@ Iterator_TripleMap<_Key, _Value1, _Value2>::~Iterator_TripleMap()
 template <class _Key, class _Value1, class _Value2>
 bool Iterator_TripleMap<_Key, _Value1, _Value2>::Equals(const Iterator&value) const
 {
-	return (num == value.num&&parent == value.parent);
+	return (num == value.num&&parent == value.parent) || (value.parent == nullptr&&parent != nullptr&& num >= parent->datas.size());
 }
 
 template <class _Key, class _Value1, class _Value2>
@@ -718,7 +647,7 @@ bool Iterator_TripleMap<_Key, _Value1, _Value2>::Erase()
 {
 	if(End())
 		return false;
-	parent->datas.erase(parent->datas.begin() + 10);
+	parent->datas.erase(parent->datas.begin() + num);
 	return true;
 }
 
@@ -780,7 +709,7 @@ template <class _Key, class _Value1, class _Value2>
 TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _Value2>::operator=(const Iterator&value)
 {
 	num = value.num;
-	parent = value.num;
+	parent = value.parent;
 	return *this;
 }
 
@@ -869,37 +798,37 @@ Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _V
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _Value2>::operator++()
 {
-	if(End())
-		return GetEmpty();
-	return parent->Find(num ++);
+	if(!End())
+		num++;
+	return *this;
 }
 
 template <class _Key, class _Value1, class _Value2>
-Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _Value2>::operator++(int)
+Iterator_TripleMap<_Key, _Value1, _Value2> Iterator_TripleMap<_Key, _Value1, _Value2>::operator++(int)
 {
 	if(End())
-		return GetEmpty();
+		return *this;
 	return parent->Find(++num);
 }
 
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _Value2>::operator--()
 {
-	if(End())
-		return GetEmpty();
-	return parent->Find(num--);
+	if(!End())
+		num--;
+	return *this;
 }
 
 template <class _Key, class _Value1, class _Value2>
-Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _Value2>::operator--(int)
+Iterator_TripleMap<_Key, _Value1, _Value2> Iterator_TripleMap<_Key, _Value1, _Value2>::operator--(int)
 {
 	if(End())
-		return GetEmpty();
+		return *this;
 	return parent->Find(--num);
 }
 
 template <class _Key, class _Value1, class _Value2>
-const Triad<_Key, _Value1, _Value2>* Iterator_TripleMap<_Key, _Value1, _Value2>::operator->() const
+Triad<_Key, _Value1, _Value2>* Iterator_TripleMap<_Key, _Value1, _Value2>::operator->() const
 {
 	if(End())
 		return nullptr;

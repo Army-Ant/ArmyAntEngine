@@ -11,7 +11,7 @@ typedef _Bool bool;
 
 #undef AA_SAFE_DEL
 #undef AA_SAFE_DELALL
-#define AA_SAFE_DEL(x) if(x != NULL){free(x); x = NULL;}
+#define AA_SAFE_DEL(x) {if(x != NULL){free(x); x = NULL;}}
 #define AA_SAFE_FREE AA_SAFE_DEL
 #define AA_SAFE_DELALL AA_SAFE_DEL
 

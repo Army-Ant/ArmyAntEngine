@@ -120,7 +120,7 @@ bool D3dBase::ReleaseAllBuffers()
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	bool ret = true;
-	for(auto i = hd->buffers.Begin(); i != hd->buffers.End(); i++)
+	for(auto i = hd->buffers.Begin(); i != hd->buffers.End();)
 	{
 		ret = ret && ReleaseBuffer(i->first);
 	}
@@ -158,13 +158,13 @@ bool D3dBase::ResetViewport(DWORD bufferHandle)
 }
 
 
-DWORD D3dBase::GetScreenWidth()
+const DWORD D3dBase::GetScreenWidth()
 {
 	return GetSystemMetrics(SM_CXSCREEN);
 }
 
 
-DWORD D3dBase::GetScreenHeight()
+const DWORD D3dBase::GetScreenHeight()
 {
 	return GetSystemMetrics(SM_CYSCREEN);
 }
@@ -198,11 +198,10 @@ bool D3dBase::CreateDevice(HWND window, DWORD bufferCount, DWORD SampleDescCount
 #ifdef _DEBUG   
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif  
-	HRESULT result;
-	unsigned int driver = 0;
-	unsigned int feature = 0;
-	for(driver = 0; driver < totalDriverTypes; ++driver)
+	HRESULT result = -1;
+	for(unsigned int driver = 0; driver < totalDriverTypes; ++driver)
 	{
+		unsigned int feature = 0;
 		for(auto featureLevel_ = featureLevels[feature]; feature < totalFeatureLevels; featureLevel_ = featureLevels[++feature])
 		{
 			result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0, creationFlags, featureLevels, totalFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc, &hd->swapChain_, &hd->d3dDevice_, &featureLevel_, &hd->d3dContext_);

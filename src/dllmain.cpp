@@ -2,7 +2,7 @@
 //你的unresolved symbol是因为没有载入这个winSDK的lib
 #pragma comment(lib,"winmm.lib")
 
-int WINAPI DllMain(_In_ HANDLE _HDllHandle, _In_ DWORD _Reason, _In_opt_ LPVOID _Reserved)
+BOOL WINAPI DllMain(_In_ HANDLE _HDllHandle, _In_ DWORD _Reason, _In_opt_ LPVOID _Reserved)
 {
 	UNREFERENCED_PARAMETER(_HDllHandle);
 	UNREFERENCED_PARAMETER(_Reserved);
@@ -17,5 +17,5 @@ int WINAPI DllMain(_In_ HANDLE _HDllHandle, _In_ DWORD _Reason, _In_opt_ LPVOID 
 		case DLL_THREAD_DETACH:
 			break;
 	}
-	return 0;
+	return TRUE;
 }
