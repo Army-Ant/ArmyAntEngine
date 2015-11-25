@@ -110,6 +110,8 @@
     <ClInclude Include="..\..\src\D3d11Use_start.h" />
     <ClInclude Include="..\..\src\D3dBase.h" />
     <ClInclude Include="..\..\src\Graphics.h" />
+    <ClInclude Include="..\..\src\Structure2D.h" />
+    <ClInclude Include="..\..\src\Templates2D.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\BaseGameManager.cpp" />

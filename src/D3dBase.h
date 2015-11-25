@@ -22,12 +22,9 @@ public:
 	virtual ~D3dBase();
 
 public:
-	DWORD CreateBuffer();
-	bool ReleaseBuffer(DWORD bufferHandle);
-	bool ReleaseAllBuffers();
-	DWORD CreateViewport(DWORD buffer);
-	DWORD CreateViewport(DWORD buffer, float x, float y, float w, float h, float minDepth, float maxDepth);
-	bool ResetViewport(DWORD viewPortHandle);
+	DWORD CreateViewport();
+	DWORD CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth);
+	bool ResetViewport();
 
 public:
 	static const DWORD GetScreenWidth();
@@ -38,6 +35,8 @@ public:
 
 protected:
 	bool CreateDevice(HWND window, DWORD bufferCount, DWORD SampleDescCount, DWORD SampleDescQuality, DWORD fps, DWORD width, DWORD height);
+	bool CreateBackBuffer();
+	bool ReleaseBackBuffer();
 
 	AA_FORBID_EQUAL_OPR(D3dBase);
 	AA_FORBID_COPY_CTOR(D3dBase);

@@ -21,40 +21,11 @@ public:
 	unsigned int width = 0;
 	unsigned int height = 0;
 	
-	BufferViewportMap buffers;
-
-	DWORD EnterBuffer(ID3D11RenderTargetView*);
-	DWORD EnterViewPort(DWORD, BYTE);
+	ID3D11RenderTargetView* backBuffer;
 
 	AA_FORBID_COPY_CTOR(D3dBase_private);
 	AA_FORBID_EQUAL_OPR(D3dBase_private);
 };
-
-DWORD D3dBase_private::EnterBuffer(ID3D11RenderTargetView*value)
-{
-	auto len = buffers.Size();
-	for(DWORD i = 0; i <= len; i++)
-	{
-		if(buffers.Find(i) == buffers.End())
-		{
-			buffers.Insert(i, value, 0);
-			return i;
-		}
-	}
-	return 0xffffffff;
-}
-
-
-DWORD D3dBase_private::EnterViewPort(DWORD value, BYTE num)
-{
-	auto ret = buffers.Find(value);
-	if(ret)
-	{
-		ret->third = num;
-		return value;
-	}
-	return 0xffffffff;
-}
 
 static ArmyAnt::ClassPrivateHandleManager<D3dBase, D3dBase_private, unsigned int> handleManager;
 
@@ -62,12 +33,13 @@ D3dBase::D3dBase(HWND window, DWORD bufferCount /* = 1 */, DWORD SampleDescCount
 	:handle(handleManager.GetHandle(this))
 {
 	AAAssert(CreateDevice(window, bufferCount, SampleDescCount, SampleDescQuality, fps, width, height));
+	AAAssert(CreateBackBuffer());
 }
 
 D3dBase::~D3dBase()
 {
 	auto hd = handleManager.GetDataByHandle(handle);
-	ReleaseAllBuffers();
+	AAAssert(ReleaseBackBuffer());
 	if(hd->swapChain_)
 		hd->swapChain_->Release();
 	if(hd->d3dContext_)
@@ -77,64 +49,14 @@ D3dBase::~D3dBase()
 	handleManager.ReleaseHandle(handle);
 }
 
-
-DWORD D3dBase::CreateBuffer()
+DWORD D3dBase::CreateViewport()
 {
 	auto hd = handleManager.GetDataByHandle(handle);
-	ID3D11Texture2D* bufferTexture;
-	auto result = hd->swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&bufferTexture);
-	if(FAILED(result))
-	{
-		//DXTRACE_MSG("Failed to get the swap chain back buffer!");
-		return 0;
-	}
-	ID3D11RenderTargetView* backBufferTarget_ = nullptr;
-	result = hd->d3dDevice_->CreateRenderTargetView(bufferTexture, 0, &backBufferTarget_);
-	if(bufferTexture)
-		bufferTexture->Release();
-	if(FAILED(result))
-	{
-		//DXTRACE_MSG("Failed to create the render target view!");  
-		return 0;
-	}
-	hd->d3dContext_->OMSetRenderTargets(1, &backBufferTarget_, 0);
-	return hd->EnterBuffer(backBufferTarget_);
-
+	return CreateViewport(0.0f, 0.0f, static_cast<float>(hd->width), static_cast<float>(hd->height), 0.0f, 1.0f);
 }
 
 
-bool D3dBase::ReleaseBuffer(DWORD bufferHandle)
-{//需要同时将viewport从列表中删除
-	auto hd = handleManager.GetDataByHandle(handle);
-	auto buffer = hd->buffers.Find(bufferHandle);
-	if(buffer != hd->buffers.End())
-	{
-		buffer->second->Release();
-		hd->buffers.Erase(bufferHandle);
-	}
-	return true;
-}
-
-
-bool D3dBase::ReleaseAllBuffers()
-{
-	auto hd = handleManager.GetDataByHandle(handle);
-	bool ret = true;
-	for(auto i = hd->buffers.Begin(); i != hd->buffers.End();)
-	{
-		ret = ret && ReleaseBuffer(i->first);
-	}
-	return ret;
-}
-
-DWORD D3dBase::CreateViewport(DWORD buffer)
-{
-	auto hd = handleManager.GetDataByHandle(handle);
-	return CreateViewport(buffer, 0.0f, 0.0f, static_cast<float>(hd->width), static_cast<float>(hd->height), 0.0f, 1.0f);
-}
-
-
-DWORD D3dBase::CreateViewport(DWORD buffer, float x, float y, float w, float h, float minDepth, float maxDepth)
+DWORD D3dBase::CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth)
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	D3D11_VIEWPORT viewport;
@@ -145,15 +67,15 @@ DWORD D3dBase::CreateViewport(DWORD buffer, float x, float y, float w, float h, 
 	viewport.TopLeftX = x;
 	viewport.TopLeftY = y;
 	hd->d3dContext_->RSSetViewports(1, &viewport);
-	return hd->EnterViewPort(buffer, 1);
+	return true;
 
 }
 
-bool D3dBase::ResetViewport(DWORD bufferHandle)
+bool D3dBase::ResetViewport()
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	float clearColor[4] = {0.0f, 0.0f, 0.25f, 1.0f};
-	hd->d3dContext_->ClearRenderTargetView(hd->buffers.Find(bufferHandle)->second, clearColor);
+	hd->d3dContext_->ClearRenderTargetView(hd->backBuffer, clearColor);
 	return 0 <= hd->swapChain_->Present(0, 0);
 }
 
@@ -214,6 +136,36 @@ bool D3dBase::CreateDevice(HWND window, DWORD bufferCount, DWORD SampleDescCount
 	}
 	return result >= 0;
 }
+
+bool D3dBase::CreateBackBuffer()
+{
+	auto hd = handleManager.GetDataByHandle(handle);
+	ID3D11Texture2D* bufferTexture;
+	auto result = hd->swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&bufferTexture);
+	if(FAILED(result))
+	{
+		//DXTRACE_MSG("Failed to get the swap chain back buffer!");
+		return false;
+	}
+	ID3D11RenderTargetView* backBufferTarget_ = nullptr;
+	result = hd->d3dDevice_->CreateRenderTargetView(bufferTexture, 0, &backBufferTarget_);
+	if(bufferTexture)
+		bufferTexture->Release();
+	if(FAILED(result))
+	{
+		//DXTRACE_MSG("Failed to create the render target view!");  
+		return false;
+	}
+	hd->d3dContext_->OMSetRenderTargets(1, &hd->backBuffer, 0);
+	return true;
+
+}
+
+bool D3dBase::ReleaseBackBuffer()
+{
+	return  handleManager.GetDataByHandle(handle)->backBuffer->Release() >= 0;
+}
+
 
 }
 

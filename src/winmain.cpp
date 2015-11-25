@@ -53,8 +53,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	//Demo Initialize  
 	auto ret = new AA_Engine::AA_D3dRef::D3dBase(hwnd);
-	auto viewport = ret->CreateViewport(ret->CreateBuffer());
-	ret->ResetViewport(viewport);
+	auto viewport = ret->CreateViewport();
+	ret->ResetViewport();
 
 	MSG msg = {0};
 	while(msg.message != WM_QUIT)
