@@ -33,15 +33,6 @@
     <ClInclude Include="..\..\src\D3d11Use_start.h">
       <Filter>3.D3dRefLib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\BaseGameManager.h">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Graphics.h">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\GraphicDefine.h">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\Structure2D.h">
       <Filter>4.GraphicAlgorithm</Filter>
     </ClInclude>
@@ -56,12 +47,6 @@
     <ClCompile Include="..\..\src\D3dBase.cpp">
       <Filter>3.D3dRefLib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\BaseGameManager.cpp">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics.cpp">
-      <Filter>4.GraphicAlgorithm</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\build_start.bat">
@@ -75,5 +60,10 @@
     <Text Include="Rule.txt">
       <Filter>6.docs</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\src\D3D11Shader.hlsl">
+      <Filter>3.D3dRefLib</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

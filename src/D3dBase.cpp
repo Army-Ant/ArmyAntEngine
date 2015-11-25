@@ -1,13 +1,12 @@
 ﻿#include "base.hpp"
 #include "D3dBase.h"
-#include "../externals/ArmyAntLib/ArmyAnt.h"
+// #include "../externals/ArmyAntLib/ArmyAnt.h"
+#include <d3dcompiler.h>
 
 namespace AA_Engine {
 
 namespace AA_D3dRef {
 
-typedef std::pair<ID3D11RenderTargetView*, BYTE> BufferViewportValue;
-typedef ArmyAnt::TripleMap<DWORD, ID3D11RenderTargetView*, BYTE> BufferViewportMap;
 
 class D3dBase_private
 {
@@ -24,7 +23,7 @@ public:
 	ID3D11RenderTargetView* backBuffer;
 
 	AA_FORBID_COPY_CTOR(D3dBase_private);
-	AA_FORBID_EQUAL_OPR(D3dBase_private);
+	AA_FORBID_ASSGN_OPR(D3dBase_private);
 };
 
 static ArmyAnt::ClassPrivateHandleManager<D3dBase, D3dBase_private, unsigned int> handleManager;
@@ -79,6 +78,22 @@ bool D3dBase::ResetViewport()
 	return 0 <= hd->swapChain_->Present(0, 0);
 }
 
+
+D3dBuffer* D3dBase::CreateBuffer(BufferType type, DWORD datalen, void*datas)
+{
+	auto ret = new D3dBuffer(*this);
+	ret->SetType(type);
+	ret->SetDatas(datalen, datas);
+	if(!ret->CreateBuffer())
+		AA_SAFE_DEL(ret);
+	return ret;
+}
+
+D3dBuffer* D3dBase::ReleaseBuffer(D3dBuffer*buffer)
+{
+	AA_SAFE_DEL(buffer);
+	return buffer;
+}
 
 const DWORD D3dBase::GetScreenWidth()
 {
@@ -147,8 +162,7 @@ bool D3dBase::CreateBackBuffer()
 		//DXTRACE_MSG("Failed to get the swap chain back buffer!");
 		return false;
 	}
-	ID3D11RenderTargetView* backBufferTarget_ = nullptr;
-	result = hd->d3dDevice_->CreateRenderTargetView(bufferTexture, 0, &backBufferTarget_);
+	result = hd->d3dDevice_->CreateRenderTargetView(bufferTexture, 0, &hd->backBuffer);
 	if(bufferTexture)
 		bufferTexture->Release();
 	if(FAILED(result))
@@ -156,7 +170,7 @@ bool D3dBase::CreateBackBuffer()
 		//DXTRACE_MSG("Failed to create the render target view!");  
 		return false;
 	}
-	hd->d3dContext_->OMSetRenderTargets(1, &hd->backBuffer, 0);
+	hd->d3dContext_->OMSetRenderTargets(1, &hd->backBuffer, nullptr);
 	return true;
 
 }
@@ -166,6 +180,119 @@ bool D3dBase::ReleaseBackBuffer()
 	return  handleManager.GetDataByHandle(handle)->backBuffer->Release() >= 0;
 }
 
+
+/************************** Source Code : D3dBuffer ***********************************************/
+
+
+class D3dBuffer_Private
+{
+public:	
+	D3dBuffer_Private() {};
+	~D3dBuffer_Private() {};
+
+public:
+	const D3dBase*parent = nullptr;
+	BufferType type = BufferType::Vertex;
+	void*datas = nullptr;
+	DWORD datalen = 0;
+	D3D11_BUFFER_DESC bufferDesc; 
+	ID3D11Buffer* vertexBuffer = nullptr;
+	bool isBufferCreated = false;
+	bool isShaderCreated = false;
+
+	AA_FORBID_COPY_CTOR(D3dBuffer_Private);
+	AA_FORBID_ASSGN_OPR(D3dBuffer_Private);
+};
+
+static ArmyAnt::ClassPrivateHandleManager<D3dBuffer, D3dBuffer_Private, unsigned int> bufferHandleManager;
+
+D3dBuffer::D3dBuffer(const D3dBase&parent) 
+	:handle(bufferHandleManager.GetHandle(this))
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	hd->parent = &parent;
+}
+
+D3dBuffer::D3dBuffer(const D3dBuffer&value)
+	:handle(bufferHandleManager.GetHandle(this))
+{
+	*this = value;
+}
+
+D3dBuffer::~D3dBuffer()
+{
+	bufferHandleManager.ReleaseHandle(handle);
+}
+
+D3dBuffer& D3dBuffer::operator=(const D3dBuffer&value)
+{
+	// TODO COPY
+	return *this;
+}
+
+bool D3dBuffer::SetType(BufferType type)
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	hd->type = type;
+	return true;
+}
+
+
+bool D3dBuffer::SetDatas(DWORD datalen, void*datas)
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	hd->datas = datas;
+	hd->datalen = datalen;
+	return datas != nullptr && datalen > 0;
+}
+
+bool D3dBuffer::CreateBuffer()
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	hd->bufferDesc.Usage = D3D11_USAGE_DEFAULT; 
+	hd->bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; 
+	hd->bufferDesc.ByteWidth = hd->datalen;
+	D3D11_SUBRESOURCE_DATA data; 
+	memset(hd->datas, 0, hd->datalen);
+	data.pSysMem = hd->datas;
+	return hd->isBufferCreated = (0 <= handleManager.GetDataByHandle(hd->parent->handle)->d3dDevice_->CreateBuffer(&hd->bufferDesc, &data, &hd->vertexBuffer));
+}
+
+bool D3dBuffer::CreateShader()
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	auto phd = handleManager.GetDataByHandle(hd->parent->handle);
+
+	ID3D11VertexShader* solidColorVS; 
+	ID3D11PixelShader* solidColorPS; 
+	ID3D11InputLayout* inputLayout;
+	ID3DBlob* vsBuffer = 0;
+	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef DEBUG
+	shaderFlags |= D3DCOMPILE_DEBUG; 
+#endif  
+	ID3DBlob* errorBuffer = 0; 
+	HRESULT result;
+	result = D3DX11CompileFromFile("D3D11Shader.hlsl", 0, 0, "VertexShaderMain", "vs_5_0", shaderFlags, 0, 0, &vsBuffer, &errorBuffer, 0);
+	if(FAILED(result)) 
+	{ 
+		if(errorBuffer != 0) 
+		{
+			OutputDebugStringA((char*)errorBuffer->GetBufferPointer());
+			errorBuffer->Release();
+		}
+		return false;
+	}
+	if(errorBuffer != 0) 
+		errorBuffer->Release();
+	result = phd->d3dDevice_->CreateVertexShader(vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), 0, &solidColorVS);
+	if(FAILED(result)) 
+	{
+		if(vsBuffer) vsBuffer->Release();
+		return false; 
+	}
+	return true;
+}
 
 }
 

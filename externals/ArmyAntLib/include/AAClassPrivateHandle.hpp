@@ -30,7 +30,7 @@ public:
 	std::map<T_Handle, T_In*> handleMap;
 
 	AA_FORBID_COPY_CTOR(ClassPrivateHandleManager);
-	AA_FORBID_EQUAL_OPR(ClassPrivateHandleManager);
+	AA_FORBID_ASSGN_OPR(ClassPrivateHandleManager);
 };
 
 /******************************** Source Code *********************************/

@@ -36,7 +36,7 @@ typedef unsigned _int64 LWORD;
 #define max(x,y) ((x>=y)?(x):(y))
 #endif
 
-#define AA_FORBID_EQUAL_OPR(typen) public: typen& operator=(typen&)=delete
+#define AA_FORBID_ASSGN_OPR(typen) public: typen& operator=(typen&)=delete
 #define AA_FORBID_COPY_CTOR(typen) public: typen(typen&)=delete
 
 #endif // A_A_DEFINE_H_2015_11_11

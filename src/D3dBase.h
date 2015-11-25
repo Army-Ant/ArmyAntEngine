@@ -10,10 +10,20 @@
 
 #include "D3d11Use_start.h"
 #include "../externals/ArmyAntLib/include/AADefine.h"
+#include <xmemory>
 
 namespace AA_Engine {
 
 namespace AA_D3dRef {
+
+class D3dBuffer;
+
+enum class BufferType : BYTE
+{
+	Vertex,
+	Picture,
+	Alpha
+};
 
 class D3D11USE_API D3dBase
 {
@@ -25,6 +35,9 @@ public:
 	DWORD CreateViewport();
 	DWORD CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth);
 	bool ResetViewport();
+
+	D3dBuffer* CreateBuffer(BufferType type, DWORD datalen, void*datas);
+	D3dBuffer* ReleaseBuffer(D3dBuffer*buffer);
 
 public:
 	static const DWORD GetScreenWidth();
@@ -38,12 +51,30 @@ protected:
 	bool CreateBackBuffer();
 	bool ReleaseBackBuffer();
 
-	AA_FORBID_EQUAL_OPR(D3dBase);
+	AA_FORBID_ASSGN_OPR(D3dBase);
 	AA_FORBID_COPY_CTOR(D3dBase);
 };
 
-}
+class D3D11USE_API D3dBuffer
+{
+public:
+	D3dBuffer(const D3dBase&parent);
+	D3dBuffer(const D3dBuffer&value);
+	~D3dBuffer();
+	D3dBuffer&operator =(const D3dBuffer&value);
 
-}
+public:
+	bool SetType(BufferType type);
+	bool SetDatas(DWORD datalen, void*datas);
+	bool CreateBuffer();
+	bool CreateShader();
+
+public:
+	const unsigned int handle;
+};
+
+} // namespace AA_D3dRef;
+
+} // namespace AA_Engine
 
 #endif

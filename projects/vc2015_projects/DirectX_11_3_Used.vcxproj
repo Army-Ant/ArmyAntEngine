@@ -79,7 +79,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -104,20 +104,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\AA_D3D11_3_used.h" />
-    <ClInclude Include="..\..\src\GraphicDefine.h" />
     <ClInclude Include="..\..\src\base.hpp" />
-    <ClInclude Include="..\..\src\BaseGameManager.h" />
     <ClInclude Include="..\..\src\D3d11Use_start.h" />
     <ClInclude Include="..\..\src\D3dBase.h" />
-    <ClInclude Include="..\..\src\Graphics.h" />
     <ClInclude Include="..\..\src\Structure2D.h" />
     <ClInclude Include="..\..\src\Templates2D.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\BaseGameManager.cpp" />
     <ClCompile Include="..\..\src\dllmain.cpp" />
     <ClCompile Include="..\..\src\D3dBase.cpp" />
-    <ClCompile Include="..\..\src\Graphics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\build_end.bat" />
@@ -125,6 +120,15 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Rule.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\src\D3D11Shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">VertexShaderMain</EntryPointName>
+      <FileType>Document</FileType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
