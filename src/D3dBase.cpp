@@ -1,7 +1,7 @@
 ﻿#include "base.hpp"
 #include "D3dBase.h"
-// #include "../externals/ArmyAntLib/ArmyAnt.h"
-#include <d3dcompiler.h>
+#include "../externals/ArmyAntLib/ArmyAnt.h"
+using namespace ArmyAnt;
 
 namespace AA_Engine {
 
@@ -70,22 +70,20 @@ DWORD D3dBase::CreateViewport(float x, float y, float w, float h, float minDepth
 
 }
 
-bool D3dBase::ResetViewport()
+bool D3dBase::ResetViewport(AA_Engine::Algorithm::Color32 color32/* = 0xffffffff*/)
 {
 	auto hd = handleManager.GetDataByHandle(handle);
-	float clearColor[4] = {0.0f, 0.0f, 0.25f, 1.0f};
+	float clearColor[4] = {color32.simpleColor.red/256.0f,color32.simpleColor.green / 256.0f,color32.simpleColor.blue / 256.0f,color32.simpleColor.alpha / 256.0f};
 	hd->d3dContext_->ClearRenderTargetView(hd->backBuffer, clearColor);
 	return 0 <= hd->swapChain_->Present(0, 0);
 }
 
 
-D3dBuffer* D3dBase::CreateBuffer(BufferType type, DWORD datalen, void*datas)
+D3dBuffer* D3dBase::MakeBuffer(BufferType type, DWORD datalen, void*datas)
 {
 	auto ret = new D3dBuffer(*this);
 	ret->SetType(type);
 	ret->SetDatas(datalen, datas);
-	if(!ret->CreateBuffer())
-		AA_SAFE_DEL(ret);
 	return ret;
 }
 
@@ -164,7 +162,7 @@ bool D3dBase::CreateBackBuffer()
 	}
 	result = hd->d3dDevice_->CreateRenderTargetView(bufferTexture, 0, &hd->backBuffer);
 	if(bufferTexture)
-		bufferTexture->Release();
+		AA_SAFE_RELEASE(bufferTexture);
 	if(FAILED(result))
 	{
 		//DXTRACE_MSG("Failed to create the render target view!");  
@@ -195,14 +193,40 @@ public:
 	BufferType type = BufferType::Vertex;
 	void*datas = nullptr;
 	DWORD datalen = 0;
-	D3D11_BUFFER_DESC bufferDesc; 
 	ID3D11Buffer* vertexBuffer = nullptr;
-	bool isBufferCreated = false;
-	bool isShaderCreated = false;
+
+	ID3DBlob* vsBuffer = nullptr;
+	ID3DBlob* psBuffer = nullptr;
+	ID3D11VertexShader* vertexShader = nullptr;
+	ID3D11PixelShader* pixelShader = nullptr;
+	ID3D11InputLayout* inputLayout = nullptr;
+
+public:
+	static D3D11_INPUT_ELEMENT_DESC GetInputDesc(const char* semanticName, DWORD semanticIndex, DXGI_FORMAT format, DWORD inputSlot,  DWORD alignBytesOffset, BufferType type);
 
 	AA_FORBID_COPY_CTOR(D3dBuffer_Private);
 	AA_FORBID_ASSGN_OPR(D3dBuffer_Private);
 };
+
+D3D11_INPUT_ELEMENT_DESC D3dBuffer_Private::GetInputDesc(const char* semanticName, DWORD semanticIndex, DXGI_FORMAT format, DWORD inputSlot, DWORD alignBytesOffset, BufferType type)
+{
+	D3D11_INPUT_ELEMENT_DESC ret;
+	ret.SemanticName = semanticName;
+	ret.SemanticIndex = semanticIndex;
+	ret.Format = format;
+	ret.InputSlot = inputSlot;
+	ret.AlignedByteOffset = alignBytesOffset;
+	switch(type)
+	{
+		case BufferType::Vertex:
+			ret.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			ret.InstanceDataStepRate = 0;
+			break;
+		default:
+			ret.InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	}
+	return ret;
+}
 
 static ArmyAnt::ClassPrivateHandleManager<D3dBuffer, D3dBuffer_Private, unsigned int> bufferHandleManager;
 
@@ -221,6 +245,14 @@ D3dBuffer::D3dBuffer(const D3dBuffer&value)
 
 D3dBuffer::~D3dBuffer()
 {
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	AA_SAFE_RELEASE(hd->vsBuffer)
+		AA_SAFE_RELEASE(hd->psBuffer)
+		AA_SAFE_RELEASE(hd->vertexShader)
+		AA_SAFE_RELEASE(hd->pixelShader)
+		AA_SAFE_RELEASE(hd->inputLayout)
+		AA_SAFE_RELEASE(hd->vertexBuffer)
+
 	bufferHandleManager.ReleaseHandle(handle);
 }
 
@@ -241,6 +273,7 @@ bool D3dBuffer::SetType(BufferType type)
 bool D3dBuffer::SetDatas(DWORD datalen, void*datas)
 {
 	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	memset(hd->datas, 0, hd->datalen);
 	hd->datas = datas;
 	hd->datalen = datalen;
 	return datas != nullptr && datalen > 0;
@@ -249,49 +282,95 @@ bool D3dBuffer::SetDatas(DWORD datalen, void*datas)
 bool D3dBuffer::CreateBuffer()
 {
 	auto hd = bufferHandleManager.GetDataByHandle(handle);
-	hd->bufferDesc.Usage = D3D11_USAGE_DEFAULT; 
-	hd->bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; 
-	hd->bufferDesc.ByteWidth = hd->datalen;
-	D3D11_SUBRESOURCE_DATA data; 
-	memset(hd->datas, 0, hd->datalen);
+	D3D11_BUFFER_DESC bufferDesc;
+
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.ByteWidth = hd->datalen;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	D3D11_SUBRESOURCE_DATA data;
+	memset(&data, 0, sizeof(D3D11_SUBRESOURCE_DATA));
 	data.pSysMem = hd->datas;
-	return hd->isBufferCreated = (0 <= handleManager.GetDataByHandle(hd->parent->handle)->d3dDevice_->CreateBuffer(&hd->bufferDesc, &data, &hd->vertexBuffer));
+	handleManager.GetDataByHandle(hd->parent->handle)->d3dDevice_->CreateBuffer(&bufferDesc, &data, &hd->vertexBuffer);
+	return (0 <= handleManager.GetDataByHandle(hd->parent->handle)->d3dDevice_->CreateBuffer(&bufferDesc, &data, &hd->vertexBuffer));
 }
 
-bool D3dBuffer::CreateShader()
+bool D3dBuffer::CreateShader(const char*shaderCodeFile, bool isVertexShader/* = true*/, const char* EntryPoint/* = nullptr*/)
 {
 	auto hd = bufferHandleManager.GetDataByHandle(handle);
 	auto phd = handleManager.GetDataByHandle(hd->parent->handle);
 
-	ID3D11VertexShader* solidColorVS; 
-	ID3D11PixelShader* solidColorPS; 
-	ID3D11InputLayout* inputLayout;
-	ID3DBlob* vsBuffer = 0;
 	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef DEBUG
-	shaderFlags |= D3DCOMPILE_DEBUG; 
+	shaderFlags |= D3DCOMPILE_DEBUG;
 #endif  
-	ID3DBlob* errorBuffer = 0; 
+	ID3DBlob* errorBuffer = 0;
+	ID3DBlob*& buffer = isVertexShader ? hd->vsBuffer : hd->psBuffer;
 	HRESULT result;
-	result = D3DX11CompileFromFile("D3D11Shader.hlsl", 0, 0, "VertexShaderMain", "vs_5_0", shaderFlags, 0, 0, &vsBuffer, &errorBuffer, 0);
-	if(FAILED(result)) 
-	{ 
-		if(errorBuffer != 0) 
+	if(EntryPoint == nullptr)
+		result = D3DX11PreprocessShaderFromFileA(shaderCodeFile, nullptr, nullptr, nullptr, &buffer, &errorBuffer, nullptr);
+	else
+		result = D3DX11CompileFromFileA(shaderCodeFile, nullptr, nullptr, EntryPoint, isVertexShader ? "vs_4_0" : "ps_4_0", shaderFlags, 0, nullptr, &buffer, &errorBuffer, 0);
+	if(FAILED(result))
+	{
+		if(errorBuffer != 0)
 		{
 			OutputDebugStringA((char*)errorBuffer->GetBufferPointer());
-			errorBuffer->Release();
+			AA_SAFE_RELEASE(errorBuffer);
 		}
 		return false;
 	}
-	if(errorBuffer != 0) 
-		errorBuffer->Release();
-	result = phd->d3dDevice_->CreateVertexShader(vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), 0, &solidColorVS);
-	if(FAILED(result)) 
+	if(errorBuffer != 0)
+		AA_SAFE_RELEASE(errorBuffer);
+
+	if(isVertexShader)
+		result = phd->d3dDevice_->CreateVertexShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), 0, &hd->vertexShader);
+	else
+		result = phd->d3dDevice_->CreatePixelShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), 0, &hd->pixelShader);
+	if(FAILED(result))
 	{
-		if(vsBuffer) vsBuffer->Release();
-		return false; 
+		if(buffer)
+			AA_SAFE_RELEASE(buffer);
+		return false;
 	}
 	return true;
+}
+
+bool D3dBuffer::CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32 innerColor)
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	auto phd = handleManager.GetDataByHandle(hd->parent->handle);
+	D3D11_INPUT_ELEMENT_DESC*layout = new D3D11_INPUT_ELEMENT_DESC[pointNums];
+
+	for(DWORD i = 0; i < pointNums; i++)
+	{
+		layout[i] = hd->GetInputDesc("POSITION", i, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, hd->type);
+	}
+	if(FAILED(phd->d3dDevice_->CreateInputLayout(layout, pointNums, hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), &hd->inputLayout)))
+		return false;
+	AA_SAFE_RELEASE(hd->vsBuffer)
+	// Set the input layout
+	return true;
+}
+
+bool D3dBuffer::Render()
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	auto phd = handleManager.GetDataByHandle(hd->parent->handle);
+
+	unsigned int stride = sizeof(_XMFLOAT3);
+	unsigned int offset = 0;
+	phd->d3dContext_->IASetInputLayout(hd->inputLayout);
+	phd->d3dContext_->IASetVertexBuffers(0, 1, &hd->vertexBuffer, &stride, &offset);
+	phd->d3dContext_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// Render a triangle
+	phd->d3dContext_->VSSetShader(hd->vertexShader, nullptr, 0);
+	phd->d3dContext_->PSSetShader(hd->pixelShader, nullptr, 0);
+	phd->d3dContext_->Draw(3, 0);
+
+	// Present the information rendered to the back buffer to the front buffer (the screen)
+	return 0 <= phd->swapChain_->Present(0, 0);
 }
 
 }

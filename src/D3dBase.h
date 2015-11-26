@@ -9,14 +9,19 @@
 #endif
 
 #include "D3d11Use_start.h"
+#include "Structure2D.h"
 #include "../externals/ArmyAntLib/include/AADefine.h"
 #include <xmemory>
+
+struct D3D11_INPUT_ELEMENT_DESC;
 
 namespace AA_Engine {
 
 namespace AA_D3dRef {
 
+
 class D3dBuffer;
+
 
 enum class BufferType : BYTE
 {
@@ -24,6 +29,7 @@ enum class BufferType : BYTE
 	Picture,
 	Alpha
 };
+
 
 class D3D11USE_API D3dBase
 {
@@ -34,9 +40,9 @@ public:
 public:
 	DWORD CreateViewport();
 	DWORD CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth);
-	bool ResetViewport();
+	bool ResetViewport(AA_Engine::Algorithm::Color32 color32 = 0xffffffff);
 
-	D3dBuffer* CreateBuffer(BufferType type, DWORD datalen, void*datas);
+	D3dBuffer* MakeBuffer(BufferType type, DWORD datalen, void*datas);
 	D3dBuffer* ReleaseBuffer(D3dBuffer*buffer);
 
 public:
@@ -55,6 +61,7 @@ protected:
 	AA_FORBID_COPY_CTOR(D3dBase);
 };
 
+
 class D3D11USE_API D3dBuffer
 {
 public:
@@ -67,7 +74,9 @@ public:
 	bool SetType(BufferType type);
 	bool SetDatas(DWORD datalen, void*datas);
 	bool CreateBuffer();
-	bool CreateShader();
+	bool CreateShader(const char*shaderCodeFile,bool isVertexShader = true, const char* EntryPoint = nullptr);
+	bool CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32 innerColor);
+	bool Render();
 
 public:
 	const unsigned int handle;

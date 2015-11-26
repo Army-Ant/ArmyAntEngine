@@ -1,6 +1,7 @@
 ﻿#ifndef A_A_D3D11_3_USED_H_2015_11_13
 #define A_A_D3D11_3_USED_H_2015_11_13
 
+#include "Structure2D.h"
 #include "D3dBase.h"
 
 #ifndef DIRECTX_11_3_USED_EXPORTS
