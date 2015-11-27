@@ -50,9 +50,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	if(!hwnd)
 		return -1;
 	ShowWindow(hwnd, nShow);
-
+	std::auto_ptr<AA_Engine::AA_D3dRef::Demo> demo(new AA_Engine::AA_D3dRef::Demo());
+	// Demo Initialize    
+	bool result = demo->Initialize( hInstance, hwnd );
 	//Demo Initialize  
-	auto ret = new AA_Engine::AA_D3dRef::D3dBase(hwnd);
+	/*auto ret = new AA_Engine::AA_D3dRef::D3dBase(hwnd);
 	auto viewport = ret->CreateViewport();
 	AA_Engine::Algorithm::XmFloat3 vertices[] =
 	{
@@ -62,13 +64,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	};
 	auto buffer = ret->MakeBuffer(AA_Engine::AA_D3dRef::BufferType::Vertex, sizeof(AA_Engine::Algorithm::XmFloat3) * 3, vertices);
 	AAAssert(buffer != nullptr);
-	AAAssert(buffer->CreateBuffer());
-	AAAssert(buffer->CreateShader("..\\..\\src\\D3D11Shader.hlsl", true, "VertexShaderMain"));
+	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", true, "VertexShaderMain"));
 	AAAssert(buffer->CreateInputLayout(1, AA_Engine::Algorithm::Color32(0x0000ee7f)));
-	AAAssert(buffer->CreateShader("..\\..\\src\\D3D11Shader.hlsl", false, "PixelShaderMain"));
+	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", false, "PixelShaderMain"));
+	AAAssert(buffer->CreateBuffer());
 	ret->ResetViewport(0x000040ff);
-	AAAssert(buffer->Render());
-
+	*/
 	MSG msg = {0};
 	while(msg.message != WM_QUIT)
 	{
@@ -80,11 +81,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		else
 		{
 			//Update 
-			//Draw  
+			//Draw     
+			//AAAssert(buffer->Render());
+			demo->Render( ); 
 		}
 	}
 	//Demo Shutdown 
-	ret->ReleaseBuffer(buffer);
-	AA_SAFE_DEL(ret);
+	/*ret->ReleaseBuffer(buffer);
+	AA_SAFE_DEL(ret);*/
+	demo->Shutdown();
 	return static_cast<int>(msg.wParam);
 }

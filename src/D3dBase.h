@@ -74,13 +74,27 @@ public:
 	bool SetType(BufferType type);
 	bool SetDatas(DWORD datalen, void*datas);
 	bool CreateBuffer();
-	bool CreateShader(const char*shaderCodeFile,bool isVertexShader = true, const char* EntryPoint = nullptr);
+	bool CreateShader(const char*shaderCodeFile, bool isVertexShader = true, const char* EntryPoint = nullptr);
 	bool CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32 innerColor);
 	bool Render();
 
 public:
 	const unsigned int handle;
 };
+
+
+class D3D11USE_API Demo
+{
+public:
+	Demo();
+	~Demo();
+	bool Initialize(HINSTANCE hInstance, HWND hwnd);
+	void Render();
+	void Shutdown();
+};
+
+
+
 
 } // namespace AA_D3dRef;
 

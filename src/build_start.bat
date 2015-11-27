@@ -14,5 +14,8 @@ copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\include\*.*  %ProjectPath%..\..
 copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\lib\*.lib  %ProjectPath%..\..\externals\ArmyAntLib\lib\
 copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\bin\*.dll  %ProjectPath%..\..\externals\ArmyAntLib\bin\
 
+:CopyHLSLCodeFiles
+copy %ProjectPath%..\..\src\*.hlsl  %ProjectPath%..\..\bin\
+
 :End
 @echo on
