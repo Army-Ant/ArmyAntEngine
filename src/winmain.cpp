@@ -61,11 +61,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	auto viewport = ret->CreateViewport();
 	AA_Engine::Algorithm::XmFloat3 vertices[] =
 	{
-		AA_Engine::Algorithm::XmFloat3(0.5f, 0.5f, 0.5f),
-		AA_Engine::Algorithm::XmFloat3(0.5f, -0.5f, 0.5f),
-		AA_Engine::Algorithm::XmFloat3(-0.5f, -0.5f, 0.5f),
+		AA_Engine::Algorithm::XmFloat3(0.0f, 0.8f, 0.5f),
+		AA_Engine::Algorithm::XmFloat3(0.6f, -0.4f, 0.5f),
+		AA_Engine::Algorithm::XmFloat3(-0.6f, -0.4f, 0.5f),
 	};
-	auto buffer = ret->MakeBuffer(AA_Engine::AA_D3dRef::BufferType::Vertex, sizeof(AA_Engine::Algorithm::XmFloat3) * 3, vertices);
+	auto buffer = ret->MakeBuffer(AA_Engine::AA_D3dRef::BufferType::Vertex, sizeof(AA_Engine::Algorithm::XmFloat3) * 4, vertices);
 	AAAssert(buffer != nullptr);
 	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", true, "VertexShaderMain"));
 	AAAssert(buffer->CreateInputLayout(1, AA_Engine::Algorithm::Color32(0x0000007f)));

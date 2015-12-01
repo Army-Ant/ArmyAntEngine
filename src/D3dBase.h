@@ -84,14 +84,19 @@ public:
 };
 
 
-class D3D11USE_API Demo
+class D3D11USE_API Texture
 {
 public:
-	Demo();
-	~Demo();
-	bool Initialize(HINSTANCE hInstance, HWND hwnd);
-	void Render();
-	void Shutdown();
+	Texture();
+	Texture(const Texture&value);
+	Texture&operator=(const Texture&value);
+	~Texture();
+
+public:
+
+
+public:
+	const unsigned int handle;
 };
 
 

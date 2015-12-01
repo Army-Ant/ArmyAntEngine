@@ -14,9 +14,9 @@ public:
 	D3dBase_private() {}
 	~D3dBase_private() {}
 
-	IDXGISwapChain* swapChain_ = nullptr;
-	ID3D11Device* d3dDevice_ = nullptr;
-	ID3D11DeviceContext* d3dContext_ = nullptr;
+	IDXGISwapChain* swapChain = nullptr;
+	ID3D11Device* device = nullptr;
+	ID3D11DeviceContext* context = nullptr;
 	unsigned int width = 0;
 	unsigned int height = 0;
 
@@ -39,12 +39,12 @@ D3dBase::~D3dBase()
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	AAAssert(ReleaseBackBuffer());
-	if(hd->swapChain_)
-		hd->swapChain_->Release();
-	if(hd->d3dContext_)
-		hd->d3dContext_->Release();
-	if(hd->d3dDevice_)
-		hd->d3dDevice_->Release();
+	if(hd->swapChain)
+		hd->swapChain->Release();
+	if(hd->context)
+		hd->context->Release();
+	if(hd->device)
+		hd->device->Release();
 	handleManager.ReleaseHandle(handle);
 }
 
@@ -65,7 +65,7 @@ DWORD D3dBase::CreateViewport(float x, float y, float w, float h, float minDepth
 	viewport.MaxDepth = maxDepth;
 	viewport.TopLeftX = x;
 	viewport.TopLeftY = y;
-	hd->d3dContext_->RSSetViewports(1, &viewport);
+	hd->context->RSSetViewports(1, &viewport);
 	return true;
 
 }
@@ -74,8 +74,8 @@ bool D3dBase::ResetViewport(AA_Engine::Algorithm::Color32 color32/* = 0xffffffff
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	float clearColor[4] = {color32.simpleColor.red / 256.0f,color32.simpleColor.green / 256.0f,color32.simpleColor.blue / 256.0f,color32.simpleColor.alpha / 256.0f};
-	hd->d3dContext_->ClearRenderTargetView(hd->backBuffer, clearColor);
-	return 0 <= hd->swapChain_->Present(0, 0);
+	hd->context->ClearRenderTargetView(hd->backBuffer, clearColor);
+	return 0 <= hd->swapChain->Present(0, 0);
 }
 
 
@@ -139,7 +139,7 @@ bool D3dBase::CreateDevice(HWND window, DWORD bufferCount, DWORD SampleDescCount
 		unsigned int feature = 0;
 		for(auto featureLevel_ = featureLevels[feature]; feature < totalFeatureLevels; featureLevel_ = featureLevels[++feature])
 		{
-			result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0, creationFlags, featureLevels, totalFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc, &hd->swapChain_, &hd->d3dDevice_, &featureLevel_, &hd->d3dContext_);
+			result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0, creationFlags, featureLevels, totalFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc, &hd->swapChain, &hd->device, &featureLevel_, &hd->context);
 			if(SUCCEEDED(result))
 			{
 				//auto driverType_ = driverTypes[driver];
@@ -154,13 +154,13 @@ bool D3dBase::CreateBackBuffer()
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	ID3D11Texture2D* bufferTexture;
-	auto result = hd->swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&bufferTexture);
+	auto result = hd->swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&bufferTexture);
 	if(FAILED(result))
 	{
 		//DXTRACE_MSG("Failed to get the swap chain back buffer!");
 		return false;
 	}
-	result = hd->d3dDevice_->CreateRenderTargetView(bufferTexture, 0, &hd->backBuffer);
+	result = hd->device->CreateRenderTargetView(bufferTexture, 0, &hd->backBuffer);
 	if(bufferTexture)
 		AA_SAFE_RELEASE(bufferTexture);
 	if(FAILED(result))
@@ -168,7 +168,7 @@ bool D3dBase::CreateBackBuffer()
 		//DXTRACE_MSG("Failed to create the render target view!");  
 		return false;
 	}
-	hd->d3dContext_->OMSetRenderTargets(1, &hd->backBuffer, nullptr);
+	hd->context->OMSetRenderTargets(1, &hd->backBuffer, nullptr);
 	return true;
 
 }
@@ -193,13 +193,16 @@ public:
 	BufferType type = BufferType::Vertex;
 	void*datas = nullptr;
 	DWORD datalen = 0;
-	ID3D11Buffer* vertexBuffer = nullptr;
 
 	ID3DBlob* vsBuffer = nullptr;
 	ID3DBlob* psBuffer = nullptr;
 	ID3D11VertexShader* vertexShader = nullptr;
 	ID3D11PixelShader* pixelShader = nullptr;
 	ID3D11InputLayout* inputLayout = nullptr;
+	ID3D11Buffer* vertexBuffer = nullptr;
+
+	ID3D11ShaderResourceView* resView; 
+	ID3D11SamplerState* samplerState;
 
 public:
 	static D3D11_INPUT_ELEMENT_DESC GetInputDesc(const char* semanticName, DWORD semanticIndex, DXGI_FORMAT format, DWORD inputSlot, DWORD alignBytesOffset, BufferType type);
@@ -316,7 +319,7 @@ bool D3dBuffer::CreateBuffer()
 	D3D11_SUBRESOURCE_DATA data;
 	ZeroMemory(&data, sizeof(data));
 	data.pSysMem = hd->datas;
-	return (0 <= handleManager.GetDataByHandle(hd->parent->handle)->d3dDevice_->CreateBuffer(&bufferDesc, &data, &hd->vertexBuffer));
+	return (0 <= handleManager.GetDataByHandle(hd->parent->handle)->device->CreateBuffer(&bufferDesc, &data, &hd->vertexBuffer));
 }
 
 bool D3dBuffer::CreateShader(const char*shaderCodeFile, bool isVertexShader/* = true*/, const char* EntryPoint/* = nullptr*/)
@@ -328,7 +331,7 @@ bool D3dBuffer::CreateShader(const char*shaderCodeFile, bool isVertexShader/* = 
 	if(isVertexShader)
 	{
 		hd->vsBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, true);
-		result = phd->d3dDevice_->CreateVertexShader(hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), 0, &hd->vertexShader);
+		result = phd->device->CreateVertexShader(hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), 0, &hd->vertexShader);
 		if(FAILED(result))
 		{
 			if(hd->vsBuffer != nullptr)
@@ -339,7 +342,7 @@ bool D3dBuffer::CreateShader(const char*shaderCodeFile, bool isVertexShader/* = 
 	else
 	{
 		hd->psBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, false);
-		result = phd->d3dDevice_->CreatePixelShader(hd->psBuffer->GetBufferPointer(), hd->psBuffer->GetBufferSize(), 0, &hd->pixelShader);
+		result = phd->device->CreatePixelShader(hd->psBuffer->GetBufferPointer(), hd->psBuffer->GetBufferSize(), 0, &hd->pixelShader);
 		if(FAILED(result))
 		{
 			if(hd->pixelShader != nullptr)
@@ -367,7 +370,7 @@ bool D3dBuffer::CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32
 	D3D11_INPUT_ELEMENT_DESC layout;
 
 	layout = hd->GetInputDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, hd->type);
-	if(FAILED(phd->d3dDevice_->CreateInputLayout(&layout, 1, hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), &hd->inputLayout)))
+	if(FAILED(phd->device->CreateInputLayout(&layout, 1, hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), &hd->inputLayout)))
 		return false;
 	AA_SAFE_RELEASE(hd->vsBuffer);
 	// Set the input layout
@@ -381,16 +384,16 @@ bool D3dBuffer::Render()
 
 	unsigned int stride = sizeof(_XMFLOAT3);
 	unsigned int offset = 0;
-	phd->d3dContext_->IASetInputLayout(hd->inputLayout);
-	phd->d3dContext_->IASetVertexBuffers(0, 1, &hd->vertexBuffer, &stride, &offset);
-	phd->d3dContext_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	phd->context->IASetInputLayout(hd->inputLayout);
+	phd->context->IASetVertexBuffers(0, 1, &hd->vertexBuffer, &stride, &offset);
+	phd->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// Render a triangle
-	phd->d3dContext_->VSSetShader(hd->vertexShader, nullptr, 0);
-	phd->d3dContext_->PSSetShader(hd->pixelShader, nullptr, 0);
-	phd->d3dContext_->Draw(3, 0);
+	phd->context->VSSetShader(hd->vertexShader, nullptr, 0);
+	phd->context->PSSetShader(hd->pixelShader, nullptr, 0);
+	phd->context->Draw(3, 0);
 
 	// Present the information rendered to the back buffer to the front buffer (the screen)
-	return 0 <= phd->swapChain_->Present(0, 0);
+	return 0 <= phd->swapChain->Present(0, 0);
 }
 
 }
