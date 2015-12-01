@@ -21,10 +21,10 @@ union Color32
 	DWORD color;
 	struct
 	{
-		BYTE red;
-		BYTE green;
-		BYTE blue;
 		BYTE alpha;
+		BYTE blue;
+		BYTE green;
+		BYTE red;
 	} simpleColor;
 
 	Color32(DWORD color)
@@ -33,7 +33,7 @@ union Color32
 	}
 
 	Color32(BYTE red, BYTE green, BYTE blue, BYTE alpha)
-		:simpleColor({red,green,blue,alpha})
+		:simpleColor({alpha,blue,green,red})
 	{
 	}
 };

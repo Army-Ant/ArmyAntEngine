@@ -75,6 +75,7 @@ public:
 	bool SetDatas(DWORD datalen, void*datas);
 	bool CreateBuffer();
 	bool CreateShader(const char*shaderCodeFile, bool isVertexShader = true, const char* EntryPoint = nullptr);
+	bool ReleaseShader(bool isVertexShader);
 	bool CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32 innerColor);
 	bool Render();
 

@@ -323,28 +323,41 @@ bool D3dBuffer::CreateShader(const char*shaderCodeFile, bool isVertexShader/* = 
 {
 	auto hd = bufferHandleManager.GetDataByHandle(handle);
 	auto phd = handleManager.GetDataByHandle(hd->parent->handle);
-	HRESULT result = 0;
-	ID3DBlob**buffer;
+	HRESULT result = -1;
 
 	if(isVertexShader)
 	{
-		buffer = &(hd->vsBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, true));
-		result = phd->d3dDevice_->CreateVertexShader((*buffer)->GetBufferPointer(), (*buffer)->GetBufferSize(), 0, &hd->vertexShader);
+		hd->vsBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, true);
+		result = phd->d3dDevice_->CreateVertexShader(hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), 0, &hd->vertexShader);
+		if(FAILED(result))
+		{
+			if(hd->vsBuffer != nullptr)
+				AA_SAFE_RELEASE(hd->vsBuffer)
+				return false;
+		}
 	}
 	else
 	{
-		buffer = &(hd->psBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, false));
-		result = phd->d3dDevice_->CreatePixelShader((*buffer)->GetBufferPointer(), (*buffer)->GetBufferSize(), 0, &hd->pixelShader);
-		if(hd->pixelShader != nullptr)
-			AA_SAFE_RELEASE(hd->pixelShader)
+		hd->psBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, false);
+		result = phd->d3dDevice_->CreatePixelShader(hd->psBuffer->GetBufferPointer(), hd->psBuffer->GetBufferSize(), 0, &hd->pixelShader);
+		if(FAILED(result))
+		{
+			if(hd->pixelShader != nullptr)
+				AA_SAFE_RELEASE(hd->psBuffer)
+				return false;
+		}
 	}
-	if(FAILED(result))
-	{
-		if(*buffer)
-			AA_SAFE_RELEASE((*buffer));
-		return false;
-	}
-	return true;
+	return result >= 0;
+}
+
+bool D3dBuffer::ReleaseShader(bool isVertexShader)
+{
+	auto hd = bufferHandleManager.GetDataByHandle(handle);
+	if(isVertexShader)
+		AA_SAFE_RELEASE(hd->vsBuffer)
+	else
+		AA_SAFE_RELEASE(hd->psBuffer)
+		return true;
 }
 
 bool D3dBuffer::CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32 innerColor)
@@ -378,150 +391,6 @@ bool D3dBuffer::Render()
 
 	// Present the information rendered to the back buffer to the front buffer (the screen)
 	return 0 <= phd->swapChain_->Present(0, 0);
-}
-
-
-
-
-
-static bool CompileD3DShader(char* filePath, char* entry, char* shaderModel, ID3DBlob** buffer)
-{
-	*buffer = D3dBuffer_Private::GetCompileHLSL(filePath,entry,0!=strcmp(shaderModel,"ps_4_0"));
-	return *buffer != nullptr;
-}
-
-
-struct VertexPos { XMFLOAT3 pos; };
-class TriangleDemo
-{
-public:
-	TriangleDemo();
-	virtual ~TriangleDemo();
-	bool Initialize(HINSTANCE hInstance, HWND hwnd);
-	void Render();
-	void Shutdown();
-
-protected:
-	bool LoadContent();
-
-private:
-	D3dBase*d3dbase;
-	D3dBuffer*d3dbuffer;
-	float clearColor[4] = {0.0f, 0.0f, 0.25f, 1.0f};
-	VertexPos vertices[3] = {XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT3(-0.5f, -0.5f, 0.5f)};
-};
-
-TriangleDemo::TriangleDemo()
-	:d3dbase(nullptr), d3dbuffer(nullptr)
-{}
-TriangleDemo::~TriangleDemo()
-{
-	Shutdown();
-}
-
-bool TriangleDemo::Initialize(HINSTANCE hInstance, HWND hwnd)
-{
-	RECT dimensions;
-	GetClientRect(hwnd, &dimensions);
-	unsigned int width = dimensions.right - dimensions.left;
-	unsigned int height = dimensions.bottom - dimensions.top;
-
-	d3dbase = new D3dBase(hwnd,1,1,0,60,width,height);
-	d3dbase->CreateViewport();
-	return LoadContent();
-}
-bool TriangleDemo::LoadContent()
-{
-	auto phd = handleManager.GetDataByHandle(d3dbase->handle);
-
-	d3dbuffer = d3dbase->MakeBuffer(BufferType::Vertex, sizeof(XMFLOAT3) * 3,vertices);
-	auto hd = bufferHandleManager.GetDataByHandle(d3dbuffer->handle);
-	HRESULT result;
-
-	/*if(CompileD3DShader("D3D11Shader.hlsl", "VertexShaderMain", "vs_4_0", &hd->vsBuffer) == false)
-	{
-		MessageBox(0, "Error loading vertex shader!", "Compile Error", MB_OK); 
-		return false;
-	}
-	result = phd->d3dDevice_->CreateVertexShader(hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), 0, &hd->vertexShader);
-	if(FAILED(result))
-	{
-		if(hd->vsBuffer) 
-			hd->vsBuffer->Release();
-		return false;
-	}*/
-	d3dbuffer->CreateShader("D3D11Shader.hlsl", true, "VertexShaderMain");
-
-	
-	/*D3D11_INPUT_ELEMENT_DESC solidColorLayout[] = {
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
-	};
-	unsigned int totalLayoutElements = ARRAYSIZE(solidColorLayout); 
-	result = phd->d3dDevice_->CreateInputLayout(solidColorLayout, totalLayoutElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &hd->inputLayout);
-	vsBuffer->Release();
-	if(0 > result)
-	{
-		return false;
-	}*/
-	d3dbuffer->CreateInputLayout(3, 0xffeeccff);
-
-	if(!CompileD3DShader("D3D11Shader.hlsl", "PixelShaderMain", "ps_4_0", &hd->psBuffer))
-	{
-		MessageBox(0, "Error loading pixel shader!", "Compile Error", MB_OK);
-		return false;
-	} 
-	result = phd->d3dDevice_->CreatePixelShader(hd->psBuffer->GetBufferPointer(), hd->psBuffer->GetBufferSize(), 0, &hd->pixelShader);
-	hd->psBuffer->Release();
-	if(0 > result)
-	{
-		return false;
-	}
-	//d3dbuffer->CreateShader("D3D11Shader.hlsl", false, "PixelShaderMain");
-	
-	/*D3D11_BUFFER_DESC vertexDesc; ;
-	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
-	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; 
-	vertexDesc.ByteWidth = sizeof(VertexPos) * 3;
-	D3D11_SUBRESOURCE_DATA data;
-	ZeroMemory(&data, sizeof(data));
-	data.pSysMem = vertices;
-	result = phd->d3dDevice_->CreateBuffer(&vertexDesc, &data, &hd->vertexBuffer);*/
-	d3dbuffer->CreateBuffer();
-	return 0 <= result;
-}
-void TriangleDemo::Render()
-{
-	d3dbuffer->Render();
-}
-void TriangleDemo::Shutdown()
-{
-	AA_SAFE_DEL(d3dbuffer);
-	AA_SAFE_DEL(d3dbase);
-}
-
-
-static std::auto_ptr<TriangleDemo> demo(new TriangleDemo());
-Demo::Demo()
-{
-}
-Demo::~Demo()
-{
-}
-
-bool Demo::Initialize(HINSTANCE hInstance, HWND hwnd)
-{
-	return demo->Initialize(hInstance, hwnd);
-}
-
-void Demo::Render()
-{
-	demo->Render();
-}
-
-void Demo::Shutdown()
-{
-	demo->Shutdown();
 }
 
 }
