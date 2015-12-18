@@ -1,4 +1,4 @@
-#ifndef ARMY_ANT_TRIPLE_MAP_2015_11_19
+﻿#ifndef ARMY_ANT_TRIPLE_MAP_2015_11_19
 #define ARMY_ANT_TRIPLE_MAP_2015_11_19
 
 #include "AADefine.h"
@@ -11,10 +11,10 @@ namespace ArmyAnt {
 
 template <class _Key, class _Value1, class _Value2>
 class TripleMap;
-
 template <class _Key, class _Value1, class _Value2>
 class Iterator_TripleMap;
-	
+
+
 template <class _First, class _Second, class _Third>
 class Triad
 {
@@ -421,10 +421,13 @@ bool TripleMap<_Key, _Value1, _Value2>::Erase(const _Key&key)
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::Find(const _Key&key)
 {
-	for(auto p = datas.begin(); p != datas.end(); p++)
+	auto ret = Begin();
+	if(ret == End())
+		return End();
+	for(auto p = datas.begin(); p != datas.end(); p++,ret++)
 	{
 		if(p->first == key)
-			return Iterator(*this);
+			return ret;
 	}
 	return End();
 }
@@ -432,12 +435,13 @@ Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::Fi
 template <class _Key, class _Value1, class _Value2>
 const Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::Find(const _Key&key) const
 {
-	for(auto p = datas.begin(); p != datas.end(); p++)
+	auto ret = Begin();
+	if(ret == End())
+		return End();
+	for(auto p = datas.begin(); p != datas.end(); p++, ret++)
 	{
 		if(p->first == key)
-		{
-			return const Iterator(*this);
-		}
+			return ret;
 	}
 	return End();
 }
@@ -806,9 +810,12 @@ Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _V
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2> Iterator_TripleMap<_Key, _Value1, _Value2>::operator++(int)
 {
-	if(End())
-		return *this;
-	return parent->Find(++num);
+	Iterator_TripleMap<_Key, _Value1, _Value2> ret;
+	ret.parent = this->parent;
+	ret.num = this->num;
+	if(!End())
+		num++;
+	return ret;
 }
 
 template <class _Key, class _Value1, class _Value2>
@@ -822,9 +829,12 @@ Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _V
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2> Iterator_TripleMap<_Key, _Value1, _Value2>::operator--(int)
 {
-	if(End())
-		return *this;
-	return parent->Find(--num);
+	Iterator_TripleMap<_Key, _Value1, _Value2> ret;
+	ret.parent = this->parent;
+	ret.num = this->num;
+	if(!End())
+		num--;
+	return ret;
 }
 
 template <class _Key, class _Value1, class _Value2>

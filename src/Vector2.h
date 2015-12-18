@@ -9,7 +9,7 @@ namespace AA_Engine
 		struct Vector2
 		{
 			Vector2();
-			Vector2(const Vector2& copy);
+			//Vector2(const Vector2& copy);
 			Vector2(float ax, float ay);
 
 			//unary operator

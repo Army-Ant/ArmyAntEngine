@@ -6,13 +6,13 @@
 #define AAAssert(x) assert(x)
 #elif defined _cplusplus
 #include <exception>
-#define AAAssert(x) {if(!(x)) throw std::exception();}
+#define AAAssert(x) if(!(x)) throw std::exception("assert failed !");else;
 #else
-#define AAAssert(x)
+#define AAAssert(x) x
 #endif
 
-#define AA_SAFE_DEL(x) {if(x != nullptr){delete x; x = nullptr;}}
-#define AA_SAFE_DELALL(x) {if(x != nullptr){delete[] x; x = nullptr;}}
+#define AA_SAFE_DEL(x) if(x != nullptr){delete x; x = nullptr;}else;
+#define AA_SAFE_DELALL(x) if(x != nullptr){delete[] x; x = nullptr;}else;
 
 #ifndef BYTE
 typedef unsigned char BYTE;
@@ -26,6 +26,14 @@ typedef unsigned long DWORD;
 #ifndef LWORD
 #ifdef _cplusplus
 typedef unsigned _int64 LWORD;
+#endif
+#endif
+
+#ifndef BOOL
+typedef int BOOL;
+#ifndef TRUE
+const int TRUE = 1;
+const int FALSE = 0;
 #endif
 #endif
 

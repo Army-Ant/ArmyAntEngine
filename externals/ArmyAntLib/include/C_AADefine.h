@@ -3,11 +3,15 @@
 
 #include "AADefine.h"
 
-#ifndef _cplusplus
+#ifdef _cplusplus
+
+#include <yvals.h>
+
+#else
 
 typedef _Bool bool;
-#define true 1
-#define false 0
+const int true = TRUE;
+const int false = FALSE;
 
 #undef AA_SAFE_DEL
 #undef AA_SAFE_DELALL

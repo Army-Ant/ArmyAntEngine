@@ -12,12 +12,23 @@
 #ifndef ARMY_ANT_H_2015_11_11
 #define ARMY_ANT_H_2015_11_11
 
+// Base symbol defination
 #include "include/AADefine.h"
+// Template class of C++ class helper
 #include "include/AAClassPrivateHandle.hpp"
+// Template class for a map with two values
 #include "include/AATripleMap.hpp"
+// File stream class, to work in disk file, memory, name pipe, com, network
 #include "include/AAFile.h"
+// AES encoding and decoding class
+#include "include/AAAes.h"
+// Binary data packer and unpacker class, used to make file or socket datas for program
+#include "include/AABinary.h"
+// State Machine class, the key is a string
+#include "include/AAStateMachine.h"
 
 
 
+#include "include/AA_end.h"
 
 #endif // ARMY_ANT_H_2015_11_11
