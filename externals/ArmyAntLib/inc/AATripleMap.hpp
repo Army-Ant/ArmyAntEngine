@@ -1,43 +1,89 @@
+﻿/*  
+ * Copyright (c) 2015 ArmyAnt
+ * 版权所有 (c) 2015 ArmyAnt
+ *
+ * Licensed under the BSD License, Version 2.0 (the License); 
+ * 本软件使用BSD协议保护, 协议版本:2.0
+ * you may not use this file except in compliance with the License. 
+ * 使用本开源代码文件的内容, 视为同意协议
+ * You can read the license content in the file "ARMYANT.COPYRIGHT.BSD_LICENSE.MD" at the root of this project
+ * 您可以在本项目的根目录找到名为"ARMYANT.COPYRIGHT.BSD_LICENSE.MD"的文件, 来阅读协议内容
+ * You may also obtain a copy of the License at 
+ * 您也可以在此处获得协议的副本:
+ * 
+ *     http://opensource.org/licenses/BSD-3-Clause
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an AS IS BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * 除非法律要求或者版权所有者书面同意,本软件在本协议基础上的发布没有任何形式的条件和担保,无论明示的或默许的.
+ * See the License for the specific language governing permissions and limitations under the License. 
+ * 请在特定限制或语言管理权限下阅读协议
+ */
+
 #ifndef ARMY_ANT_TRIPLE_MAP_2015_11_19
 #define ARMY_ANT_TRIPLE_MAP_2015_11_19
 
-#include "AADefine.h"
+/*	* @ author			: Jason
+	* @ date			: 11/21/2015
+	* @ nearly update	: 12/18/2015
+	* @ small version	: 0.2
+	* @ summary			: 三元组及具有双值的键值map
+	* @ uncompleted		:
+	* @ untested		: all 已经在使用中,但不保证没有bug
+	* @ tested			:
+	*/
+
 #include <cstddef>
-#include <tuple>
 #include <functional>
 #include <vector>
+#include "AADefine.h"
 
 namespace ArmyAnt {
 
 template <class _Key, class _Value1, class _Value2>
 class TripleMap;
-
 template <class _Key, class _Value1, class _Value2>
 class Iterator_TripleMap;
-	
+
+// 三元组
 template <class _First, class _Second, class _Third>
 class Triad
 {
 public:
 	typedef Triad<_First, _Second, _Third> SelfType;
+	//三元表的迭代器
 	typedef Iterator_TripleMap<_First, _Second, _Third> Iterator;
 
 public:
+	//默认空构造函数
 	Triad();
+	//带值构造函数
 	Triad(const _First&, const  _Second&, const  _Third&);
+	//复制构造函数
 	Triad(const Triad&);
+	//从迭代器复制值的构造函数
 	Triad(const Iterator&);
+	//拷贝赋值
 	Triad&operator=(const SelfType&);
+	//从迭代器拷贝赋值
 	Triad&operator=(const Iterator&);
+	//析构函数
 	~Triad();
 
 public:
+	//判断是否相等
 	bool Equals(const SelfType&) const;
+	//交换内容12
 	inline Triad<_Second, _First, _Third> Swap12() const;
+	//交换内容13
 	inline Triad<_Third, _Second, _First> Swap13() const;
+	//交换内容23
 	inline Triad<_First, _Third, _Second> Swap23() const;
+	//获取二元组12
 	inline std::pair<_First, _Second> GetValue12() const;
+	//获取二元组13
 	inline std::pair<_First, _Third> GetValue13() const;
+	//获取二元组23
 	inline std::pair<_Second, _Third> GetValue23() const;
 
 public:
@@ -61,33 +107,52 @@ public:
 	typedef Triad<_Key, _Value1, _Value2> Element;
 
 public:
-	TripleMap(Triad<_Key, _Value1, _Value2>* dataArray = nullptr, DWORD num = 0);
+	TripleMap(Triad<_Key, _Value1, _Value2>* dataArray = nullptr, uint32 num = 0);
 	~TripleMap();
 
 public:
+	//判断是否相等
 	bool Equals(const SelfMap&) const;
+	//判断是否为空
 	inline bool Empty() const;
+	//获取对应键处的值
 	std::pair<_Value1, _Value2> GetValues(const _Key&) const;
-	DWORD Size() const;
+	//获取数据总量
+	uint32 Size() const;
 
+	//插入键值
 	bool Insert(const _Key&, const  _Value1&, const  _Value2&);
+	//插入迭代器所指内容
 	bool Insert(const Iterator&);
+	//插入元素
 	inline bool Insert(const Element&);
+	//插入键值
 	inline bool Insert(const _Key&, const std::pair<_Value1, _Value2>&);
-	bool Erase(const Iterator&);
+	//清除迭代器所指位置的内容
+	bool Erase(Iterator&);
+	//清除键所对应处的内容
 	bool Erase(const _Key&);
 
+	//查找指定键的位置
 	Iterator Find(const _Key&);
 	const Iterator Find(const _Key&) const;
+	//获取指向开头的迭代器
 	Iterator Begin();
 	const Iterator Begin() const;
+	//令迭代器向前指
 	Iterator&Before(const Iterator&, int num = 1);
+	//令迭代器向后指
 	Iterator&After(const Iterator&, int num = 1);
+	//迭代器末尾,即空值
 	inline static const Iterator&End();
 
+	//排序算法
 	typedef std::function<bool(const Iterator&, const Iterator&)> SortFunc;
+	//按指定算法进行排序
 	void Sort(SortFunc);
+	//清空三元表
 	bool Clear();
+	//清空所有值,但保留键
 	bool ClearValues();
 
 public:
@@ -156,7 +221,7 @@ public:
 	inline Iterator& operator --();
 	inline Iterator operator --(int);
 
-	inline Element* operator->() const;
+	inline const Element* operator->() const;
 	inline Element operator *();
 	inline const Element operator *() const;
 
@@ -169,7 +234,7 @@ public:
 	friend Iterator&SelfMap::After(const Iterator&, int num /* = 1 */);
 
 private:
-	DWORD num;
+	uint32 num;
 	SelfMap* parent;
 
 private:
@@ -213,7 +278,7 @@ Triad<_First, _Second, _Third>& Triad<_First, _Second, _Third>::operator=(const 
 }
 
 template <class _First, class _Second, class _Third>
-Triad<_First, _Second, _Third>& Triad<_First, _Second, _Third>::operator=(const Iterator&)
+Triad<_First, _Second, _Third>& Triad<_First, _Second, _Third>::operator=(const Iterator&value)
 {
 	first = value->first;
 	second = value->second;
@@ -299,11 +364,9 @@ bool Triad<_First, _Second, _Third>::operator!=(const Iterator&i) const
 
 
 template <class _Key, class _Value1, class _Value2>
-TripleMap<_Key,_Value1,_Value2>::TripleMap(Triad<_Key, _Value1, _Value2>* dataArray/* = nullptr*/, DWORD num/* = 0*/)
+TripleMap<_Key,_Value1,_Value2>::TripleMap(Triad<_Key, _Value1, _Value2>* dataArray/* = nullptr*/, uint32 num/* = 0*/)
 {
-	if(dataArray == nullptr || num == 0)
-		return;
-	for(DWORD i = 0; i < num; i++)
+	for(uint32 i = 0; i < num; i++)
 	{
 		datas.push_back(dataArray[i]);
 	}
@@ -327,7 +390,7 @@ bool TripleMap<_Key, _Value1, _Value2>::Equals(const TripleMap<_Key, _Value1, _V
 	auto size = value.datas.size();
 	if(datas.size() != size)
 		return false;
-	for(DWORD i = 0; i < size; i++)
+	for(uint32 i = 0; i < size; i++)
 	{
 		if(datas.at(i) != value.datas.at(i))
 			return false;
@@ -349,9 +412,9 @@ std::pair<_Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::GetValues(const _
 }
 
 template <class _Key, class _Value1, class _Value2>
-DWORD TripleMap<_Key, _Value1, _Value2>::Size() const
+uint32 TripleMap<_Key, _Value1, _Value2>::Size() const
 {
-	return datas.size();
+	return uint32(datas.size());
 }
 
 
@@ -402,9 +465,9 @@ bool TripleMap<_Key, _Value1, _Value2>::Insert(const _Key&key, const std::pair<_
 }
 
 template <class _Key, class _Value1, class _Value2>
-bool TripleMap<_Key, _Value1, _Value2>::Erase(const Iterator&i)
+bool TripleMap<_Key, _Value1, _Value2>::Erase(Iterator&i)
 {
-	return i->Erase();
+	return i.Erase();
 }
 
 template <class _Key, class _Value1, class _Value2>
@@ -421,10 +484,13 @@ bool TripleMap<_Key, _Value1, _Value2>::Erase(const _Key&key)
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::Find(const _Key&key)
 {
-	for(auto p = datas.begin(); p != datas.end(); p++)
+	auto ret = Begin();
+	if(ret == End())
+		return End();
+	for(auto p = datas.begin(); p != datas.end(); p++,ret++)
 	{
 		if(p->first == key)
-			return Iterator(*this);
+			return ret;
 	}
 	return End();
 }
@@ -432,12 +498,13 @@ Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::Fi
 template <class _Key, class _Value1, class _Value2>
 const Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::Find(const _Key&key) const
 {
-	for(auto p = datas.begin(); p != datas.end(); p++)
+	auto ret = Begin();
+	if(ret == End())
+		return End();
+	for(auto p = datas.begin(); p != datas.end(); p++, ret++)
 	{
 		if(p->first == key)
-		{
-			return const Iterator(*this);
-		}
+			return ret;
 	}
 	return End();
 }
@@ -447,7 +514,8 @@ Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::Be
 {
 	if(Empty())
 		return End();
-	return Iterator(*this);
+	auto ret = Iterator_TripleMap<_Key, _Value1, _Value2>(*this);
+	return ret;
 }
 
 template <class _Key, class _Value1, class _Value2>
@@ -455,7 +523,7 @@ const Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value
 {
 	if(Empty())
 		return End();
-	return const Iterator(*this);
+	return const_cast<TripleMap<_Key, _Value1, _Value2>*>(this)->Begin();
 }
 
 template <class _Key, class _Value1, class _Value2>
@@ -487,7 +555,7 @@ const Iterator_TripleMap<_Key, _Value1, _Value2>&TripleMap<_Key, _Value1, _Value
 template <class _Key, class _Value1, class _Value2>
 void TripleMap<_Key, _Value1, _Value2>::Sort(SortFunc sortFunc)
 {
-	DWORD times = 1;
+	uint32 times = 1;
 	auto size = datas.size()-1;
 	while(size>0&&times != 0)
 	{
@@ -576,7 +644,7 @@ const Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value
 template <class _Key, class _Value1, class _Value2>
 const Iterator_TripleMap<_Key, _Value1, _Value2> TripleMap<_Key, _Value1, _Value2>::operator[](std::nullptr_t)
 {
-	return iempty;
+	return Iterator::iempty;
 }
 
 
@@ -806,9 +874,12 @@ Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _V
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2> Iterator_TripleMap<_Key, _Value1, _Value2>::operator++(int)
 {
-	if(End())
-		return *this;
-	return parent->Find(++num);
+	Iterator_TripleMap<_Key, _Value1, _Value2> ret;
+	ret.parent = this->parent;
+	ret.num = this->num;
+	if(!End())
+		num++;
+	return ret;
 }
 
 template <class _Key, class _Value1, class _Value2>
@@ -822,13 +893,16 @@ Iterator_TripleMap<_Key, _Value1, _Value2>& Iterator_TripleMap<_Key, _Value1, _V
 template <class _Key, class _Value1, class _Value2>
 Iterator_TripleMap<_Key, _Value1, _Value2> Iterator_TripleMap<_Key, _Value1, _Value2>::operator--(int)
 {
-	if(End())
-		return *this;
-	return parent->Find(--num);
+	Iterator_TripleMap<_Key, _Value1, _Value2> ret;
+	ret.parent = this->parent;
+	ret.num = this->num;
+	if(!End())
+		num--;
+	return ret;
 }
 
 template <class _Key, class _Value1, class _Value2>
-Triad<_Key, _Value1, _Value2>* Iterator_TripleMap<_Key, _Value1, _Value2>::operator->() const
+const Triad<_Key, _Value1, _Value2>* Iterator_TripleMap<_Key, _Value1, _Value2>::operator->() const
 {
 	if(End())
 		return nullptr;

@@ -10,4 +10,9 @@
       <Filter>Win32_Start</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\base.hpp">
+      <Filter>Win32_Start</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

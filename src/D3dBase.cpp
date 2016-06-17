@@ -1,6 +1,6 @@
 ﻿#include "base.hpp"
 #include "D3dBase.h"
-#include "../externals/ArmyAntLib/ArmyAnt.h"
+#include <ArmyAnt.h>
 using namespace ArmyAnt;
 
 namespace AA_Engine {
@@ -12,13 +12,22 @@ class D3dBase_private
 {
 public:
 	D3dBase_private() {}
-	~D3dBase_private() {}
+	~D3dBase_private()
+	{
+		if (swapChain)
+			swapChain->Release();
+		if (context)
+			context->Release();
+		if (device)
+			device->Release();
+	}
 
 	IDXGISwapChain* swapChain = nullptr;
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* context = nullptr;
-	unsigned int width = 0;
-	unsigned int height = 0;
+	uint32 width = 0;
+	uint32 height = 0;
+	uint32 fps = 60;
 
 	ID3D11RenderTargetView* backBuffer = nullptr;
 
@@ -26,36 +35,29 @@ public:
 	AA_FORBID_ASSGN_OPR(D3dBase_private);
 };
 
-static ArmyAnt::ClassPrivateHandleManager<D3dBase, D3dBase_private, unsigned int> handleManager;
+static ArmyAnt::ClassPrivateHandleManager<D3dBase, D3dBase_private, uint32> handleManager;
 
 D3dBase::D3dBase(HWND window, DWORD bufferCount /* = 1 */, DWORD SampleDescCount /* = 1 */, DWORD SampleDescQuality /* = 0 */, DWORD fps /* = 60 */, DWORD width /* = 0 */, DWORD height /* = 0 */)
 	:handle(handleManager.GetHandle(this))
 {
-	AAAssert(CreateDevice(window, bufferCount, SampleDescCount, SampleDescQuality, fps, width, height));
-	AAAssert(CreateBackBuffer());
+	AAAssert(CreateDevice(window, bufferCount, SampleDescCount, SampleDescQuality, fps, width, height),);
+	AAAssert(CreateBackBuffer(),);
 }
 
 D3dBase::~D3dBase()
 {
-	auto hd = handleManager.GetDataByHandle(handle);
-	AAAssert(ReleaseBackBuffer());
-	if(hd->swapChain)
-		hd->swapChain->Release();
-	if(hd->context)
-		hd->context->Release();
-	if(hd->device)
-		hd->device->Release();
+	AAAssert(ReleaseBackBuffer(),);
 	handleManager.ReleaseHandle(handle);
 }
 
-DWORD D3dBase::CreateViewport()
+bool D3dBase::CreateViewport()
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	return CreateViewport(0.0f, 0.0f, static_cast<float>(hd->width), static_cast<float>(hd->height), 0.0f, 1.0f);
 }
 
 
-DWORD D3dBase::CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth)
+bool D3dBase::CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth)
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 	D3D11_VIEWPORT viewport;
@@ -78,7 +80,6 @@ bool D3dBase::ResetViewport(AA_Engine::Algorithm::Color32 color32/* = 0xffffffff
 	return 0 <= hd->swapChain->Present(0, 0);
 }
 
-
 D3dBuffer* D3dBase::MakeBuffer(BufferType type, DWORD datalen, void*datas)
 {
 	auto ret = new D3dBuffer(*this);
@@ -87,67 +88,96 @@ D3dBuffer* D3dBase::MakeBuffer(BufferType type, DWORD datalen, void*datas)
 	return ret;
 }
 
-D3dBuffer* D3dBase::ReleaseBuffer(D3dBuffer*buffer)
+bool D3dBase::ReleaseBuffer(D3dBuffer*buffer)
 {
-	AA_SAFE_DEL(buffer);
-	return buffer;
+	Fragment::AA_SAFE_DEL(buffer);
+	return buffer==nullptr;
+}
+
+Texture2D* D3dBase::CreateTexture()
+{
+	auto ret = new Texture2D(*this);
+	return ret;
+}
+
+Texture2D* D3dBase::CreateTexture(const char*filename, TextureFileType type)
+{
+	auto ret = new Texture2D(*this, filename, type);
+	return ret;
+}
+
+bool D3dBase::RemoveTexture(Texture2D*texture)
+{
+	Fragment::AA_SAFE_DEL(texture);
+	return texture == nullptr;
 }
 
 const DWORD D3dBase::GetScreenWidth()
 {
+#ifdef OS_WINDOWS
 	return GetSystemMetrics(SM_CXSCREEN);
+#else
+
+#endif
 }
 
 
 const DWORD D3dBase::GetScreenHeight()
 {
+#ifdef OS_WINDOWS
 	return GetSystemMetrics(SM_CYSCREEN);
+#else
+
+#endif
 }
 
-bool D3dBase::CreateDevice(HWND window, DWORD bufferCount, DWORD SampleDescCount, DWORD SampleDescQuality, DWORD fps, DWORD width, DWORD height)
+bool D3dBase::CreateDevice(HWND window, DWORD bufferCount, DWORD SampleDescCount, DWORD SampleDescQuality, DWORD fps, DWORD width, DWORD height, const int* sparedSoftware/* = nullptr*/)
 {
 	auto hd = handleManager.GetDataByHandle(handle);
 
 	hd->width = width;
 	hd->height = height;
-	D3D_DRIVER_TYPE driverTypes[] = {D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_WARP,D3D_DRIVER_TYPE_REFERENCE, D3D_DRIVER_TYPE_SOFTWARE};
+	hd->fps = fps;
+	D3D_DRIVER_TYPE driverTypes[] = { D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_WARP,D3D_DRIVER_TYPE_REFERENCE, D3D_DRIVER_TYPE_SOFTWARE };
 	unsigned int totalDriverTypes = ARRAYSIZE(driverTypes);
-	D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_1,D3D_FEATURE_LEVEL_11_0,D3D_FEATURE_LEVEL_10_1,D3D_FEATURE_LEVEL_10_0};
+	D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_12_1,D3D_FEATURE_LEVEL_12_0,D3D_FEATURE_LEVEL_11_1,D3D_FEATURE_LEVEL_11_0,D3D_FEATURE_LEVEL_10_1,D3D_FEATURE_LEVEL_10_0 };
 	unsigned int totalFeatureLevels = ARRAYSIZE(featureLevels);
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
-	swapChainDesc.BufferCount = bufferCount;		//缓存页面总数
 	swapChainDesc.BufferDesc.Width = hd->width;		//缓存页宽度
 	swapChainDesc.BufferDesc.Height = hd->height;	//缓存页高度
-	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//缓存格式
-	swapChainDesc.BufferDesc.RefreshRate.Numerator = fps;		//每周期刷新次数
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = hd->fps;		//每周期刷新次数
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;		//周期长度(秒)
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//缓存用法
-	swapChainDesc.OutputWindow = window;		//窗口句柄
-	swapChainDesc.Windowed = true;		//全屏模式中，是否继续使用原先的尺寸
+	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//缓存格式
 	swapChainDesc.SampleDesc.Count = SampleDescCount;		//取样数量
 	swapChainDesc.SampleDesc.Quality = SampleDescQuality;	//取样质量
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//缓存用法
+	swapChainDesc.BufferCount = bufferCount;		//缓存页面总数
+	swapChainDesc.OutputWindow = window;		//窗口句柄
+	swapChainDesc.Windowed = TRUE;		//全屏模式中，是否继续使用原先的尺寸
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	swapChainDesc.Flags;
 
 	unsigned int creationFlags = 0;
 #ifdef _DEBUG   
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif  
 	HRESULT result = -1;
-	for(unsigned int driver = 0; driver < totalDriverTypes; ++driver)
+	for (unsigned int driver = 0; driver < totalDriverTypes; ++driver)
 	{
 		unsigned int feature = 0;
-		for(auto featureLevel_ = featureLevels[feature]; feature < totalFeatureLevels; featureLevel_ = featureLevels[++feature])
+		HMODULE s = nullptr;
+		if (driverTypes[driver] == D3D_DRIVER_TYPE_SOFTWARE || sparedSoftware != nullptr)
+			s = (HMODULE)sparedSoftware;
+		D3D_FEATURE_LEVEL usedLevel = D3D_FEATURE_LEVEL_12_1;
+		result = D3D11CreateDeviceAndSwapChain(nullptr, driverTypes[driver], s, creationFlags, featureLevels, totalFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc, &hd->swapChain, &hd->device, &usedLevel, &hd->context);
+		if (SUCCEEDED(result))
 		{
-			result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0, creationFlags, featureLevels, totalFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc, &hd->swapChain, &hd->device, &featureLevel_, &hd->context);
-			if(SUCCEEDED(result))
-			{
-				//auto driverType_ = driverTypes[driver];
-				return result >= 0;
-			}
+			return usedLevel >= 0;
 		}
 	}
-	return result >= 0;
+	return result >= 0 && hd->swapChain != nullptr;
 }
 
 bool D3dBase::CreateBackBuffer()
@@ -161,8 +191,7 @@ bool D3dBase::CreateBackBuffer()
 		return false;
 	}
 	result = hd->device->CreateRenderTargetView(bufferTexture, 0, &hd->backBuffer);
-	if(bufferTexture)
-		AA_SAFE_RELEASE(bufferTexture);
+	AA_SAFE_RELEASE(bufferTexture);
 	if(FAILED(result))
 	{
 		//DXTRACE_MSG("Failed to create the render target view!");  
@@ -175,7 +204,8 @@ bool D3dBase::CreateBackBuffer()
 
 bool D3dBase::ReleaseBackBuffer()
 {
-	return  handleManager.GetDataByHandle(handle)->backBuffer->Release() >= 0;
+	auto hd = handleManager.GetDataByHandle(handle);
+	return  (hd->backBuffer->Release() >= 0) && ((hd->backBuffer = nullptr), true);
 }
 
 
@@ -185,11 +215,20 @@ bool D3dBase::ReleaseBackBuffer()
 class D3dBuffer_Private
 {
 public:
-	D3dBuffer_Private() {};
-	~D3dBuffer_Private() {};
+	D3dBuffer_Private(const D3dBase*parent):parent(parent) {};
+	~D3dBuffer_Private() 
+	{
+		AA_SAFE_RELEASE(vsBuffer);
+		AA_SAFE_RELEASE(psBuffer);
+		AA_SAFE_RELEASE(vertexShader);
+		AA_SAFE_RELEASE(pixelShader);
+		AA_SAFE_RELEASE(inputLayout);
+		AA_SAFE_RELEASE(vertexBuffer);
+		Fragment::AA_SAFE_DELALL(datas);
+	};
 
 public:
-	const D3dBase*parent = nullptr;
+	const D3dBase* parent = nullptr;
 	BufferType type = BufferType::Vertex;
 	void*datas = nullptr;
 	DWORD datalen = 0;
@@ -211,6 +250,8 @@ public:
 	AA_FORBID_COPY_CTOR(D3dBuffer_Private);
 	AA_FORBID_ASSGN_OPR(D3dBuffer_Private);
 };
+
+static ArmyAnt::ClassPrivateHandleManager<D3dBuffer, D3dBuffer_Private, uint32> bufferHandleManager;
 
 D3D11_INPUT_ELEMENT_DESC D3dBuffer_Private::GetInputDesc(const char* semanticName, DWORD semanticIndex, DXGI_FORMAT format, DWORD inputSlot, DWORD alignBytesOffset, BufferType type)
 {
@@ -247,7 +288,7 @@ ID3DBlob* D3dBuffer_Private::GetCompileHLSL(const char*shaderCodeFile, const cha
 		if(errorBuffer != 0)
 		{
 			OutputDebugStringA((char*)errorBuffer->GetBufferPointer());
-			AA_SAFE_RELEASE(errorBuffer)
+			AA_SAFE_RELEASE(errorBuffer);
 		}
 	}
 	if(errorBuffer != 0)
@@ -255,38 +296,14 @@ ID3DBlob* D3dBuffer_Private::GetCompileHLSL(const char*shaderCodeFile, const cha
 	return outBuffer;
 }
 
-static ArmyAnt::ClassPrivateHandleManager<D3dBuffer, D3dBuffer_Private, unsigned int> bufferHandleManager;
-
 D3dBuffer::D3dBuffer(const D3dBase&parent)
-	:handle(bufferHandleManager.GetHandle(this))
+	:handle(bufferHandleManager.GetHandle(this, new D3dBuffer_Private(&parent)))
 {
-	auto hd = bufferHandleManager.GetDataByHandle(handle);
-	hd->parent = &parent;
-}
-
-D3dBuffer::D3dBuffer(const D3dBuffer&value)
-	:handle(bufferHandleManager.GetHandle(this))
-{
-	*this = value;
 }
 
 D3dBuffer::~D3dBuffer()
 {
-	auto hd = bufferHandleManager.GetDataByHandle(handle);
-	AA_SAFE_RELEASE(hd->vsBuffer);
-	AA_SAFE_RELEASE(hd->psBuffer);
-	AA_SAFE_RELEASE(hd->vertexShader);
-	AA_SAFE_RELEASE(hd->pixelShader);
-	AA_SAFE_RELEASE(hd->inputLayout);
-	AA_SAFE_RELEASE(hd->vertexBuffer);
-
 	bufferHandleManager.ReleaseHandle(handle);
-}
-
-D3dBuffer& D3dBuffer::operator=(const D3dBuffer&value)
-{
-	// TODO COPY
-	return *this;
 }
 
 bool D3dBuffer::SetType(BufferType type)
@@ -300,9 +317,10 @@ bool D3dBuffer::SetType(BufferType type)
 bool D3dBuffer::SetDatas(DWORD datalen, void*datas)
 {
 	auto hd = bufferHandleManager.GetDataByHandle(handle);
-	memset(hd->datas, 0, hd->datalen);
-	hd->datas = datas;
+	Fragment::AA_SAFE_DELALL(hd->datas);
+	hd->datas = new byte[datalen];
 	hd->datalen = datalen;
+	memcpy(hd->datas, datas, datalen);
 	return datas != nullptr && datalen > 0;
 }
 
@@ -311,9 +329,9 @@ bool D3dBuffer::CreateBuffer()
 	auto hd = bufferHandleManager.GetDataByHandle(handle);
 	D3D11_BUFFER_DESC bufferDesc;
 
+	bufferDesc.ByteWidth = hd->datalen;
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.ByteWidth = hd->datalen;
 	bufferDesc.CPUAccessFlags = 0;
 	bufferDesc.MiscFlags = 0;
 	D3D11_SUBRESOURCE_DATA data;
@@ -332,22 +350,22 @@ bool D3dBuffer::CreateShader(const char*shaderCodeFile, bool isVertexShader/* = 
 	{
 		hd->vsBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, true);
 		result = phd->device->CreateVertexShader(hd->vsBuffer->GetBufferPointer(), hd->vsBuffer->GetBufferSize(), 0, &hd->vertexShader);
-		if(FAILED(result))
+		if (FAILED(result))
 		{
-			if(hd->vsBuffer != nullptr)
-				AA_SAFE_RELEASE(hd->vsBuffer)
-				return false;
+			if (hd->vsBuffer != nullptr)
+				AA_SAFE_RELEASE(hd->vsBuffer);
+			return false;
 		}
 	}
 	else
 	{
 		hd->psBuffer = hd->GetCompileHLSL(shaderCodeFile, EntryPoint, false);
 		result = phd->device->CreatePixelShader(hd->psBuffer->GetBufferPointer(), hd->psBuffer->GetBufferSize(), 0, &hd->pixelShader);
-		if(FAILED(result))
+		if (FAILED(result))
 		{
-			if(hd->pixelShader != nullptr)
-				AA_SAFE_RELEASE(hd->psBuffer)
-				return false;
+			if (hd->pixelShader != nullptr)
+				AA_SAFE_RELEASE(hd->psBuffer);
+			return false;
 		}
 	}
 	return result >= 0;
@@ -356,11 +374,11 @@ bool D3dBuffer::CreateShader(const char*shaderCodeFile, bool isVertexShader/* = 
 bool D3dBuffer::ReleaseShader(bool isVertexShader)
 {
 	auto hd = bufferHandleManager.GetDataByHandle(handle);
-	if(isVertexShader)
-		AA_SAFE_RELEASE(hd->vsBuffer)
+	if (isVertexShader)
+		AA_SAFE_RELEASE(hd->vsBuffer);
 	else
-		AA_SAFE_RELEASE(hd->psBuffer)
-		return true;
+		AA_SAFE_RELEASE(hd->psBuffer);
+	return true;
 }
 
 bool D3dBuffer::CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32 innerColor)
@@ -394,6 +412,121 @@ bool D3dBuffer::Render()
 
 	// Present the information rendered to the back buffer to the front buffer (the screen)
 	return 0 <= phd->swapChain->Present(0, 0);
+}
+
+D3dBase& D3dBuffer::GetDevice()
+{
+	return *const_cast<D3dBase*>(bufferHandleManager[handle]->parent);
+}
+
+const D3dBase& D3dBuffer::GetDevice() const
+{
+	return *bufferHandleManager[handle]->parent;
+}
+
+
+/************************** Source Code : D3dBuffer ***********************************************/
+
+
+class Texture2D_Private
+{
+public:
+	Texture2D_Private(const D3dBase* parent):parent(parent) {};
+	~Texture2D_Private()
+	{
+		AA_SAFE_RELEASE(data);
+	};
+
+public:
+	const D3dBase* parent = nullptr;
+	std::string filename = "";
+	TextureFileType type = TextureFileType::Null;
+	ID3D11Resource* data = null;
+
+	AA_FORBID_COPY_CTOR(Texture2D_Private);
+	AA_FORBID_ASSGN_OPR(Texture2D_Private);
+};
+
+static ArmyAnt::ClassPrivateHandleManager<Texture2D, Texture2D_Private, uint32> textureHandleManager;
+
+
+Texture2D::Texture2D(const D3dBase&parent)
+	:handle(textureHandleManager.GetHandle(this, new Texture2D_Private(&parent)))
+{
+
+}
+
+Texture2D::Texture2D(const D3dBase&parent, const char*filename, TextureFileType type)
+	: handle(textureHandleManager.GetHandle(this, new Texture2D_Private(&parent)))
+{
+	AAAssert(LoadFromFile(filename, type),);
+}
+
+Texture2D::Texture2D(const Texture2D&value)
+	: handle(textureHandleManager.GetHandle(this, new Texture2D_Private(textureHandleManager[value.handle]->parent)))
+{
+	*this = value;
+}
+
+Texture2D::~Texture2D()
+{
+	textureHandleManager.ReleaseHandle(handle);
+}
+
+bool Texture2D::LoadFromFile(const char*filename, TextureFileType type)
+{
+	//TODO: Test this function
+	auto hd = textureHandleManager.GetDataByHandle(handle);
+	D3DX11_IMAGE_LOAD_INFO info;
+	D3DX11_IMAGE_INFO imgInfo;
+	ZeroMemory(&info, sizeof(D3DX11_IMAGE_LOAD_INFO));
+	ZeroMemory(&imgInfo, sizeof(D3DX11_IMAGE_INFO));
+	info.Width;
+	info.Height;
+	info.Depth;
+	info.FirstMipLevel;
+	info.MipLevels;
+	info.Usage;
+	info.BindFlags;
+	info.CpuAccessFlags;
+	info.MiscFlags;
+	info.Format;
+	info.Filter;
+	info.MipFilter;
+	info.pSrcInfo = &imgInfo;
+	imgInfo.Width;
+	imgInfo.Height;
+	imgInfo.Depth;
+	imgInfo.ArraySize;
+	imgInfo.MipLevels;
+	imgInfo.MiscFlags;
+	imgInfo.Format;
+	imgInfo.ResourceDimension = D3D11_RESOURCE_DIMENSION_TEXTURE2D;
+	switch (type) 
+	{
+	case TextureFileType::BMP:
+		imgInfo.ImageFileFormat = D3DX11_IFF_BMP;
+		break;
+	case TextureFileType::JPEG:
+		imgInfo.ImageFileFormat = D3DX11_IFF_JPG;
+		break;
+	case TextureFileType::GIF:
+		imgInfo.ImageFileFormat = D3DX11_IFF_GIF;
+		break;
+	case TextureFileType::TIFF:
+		imgInfo.ImageFileFormat = D3DX11_IFF_TIFF;
+		break;
+	case TextureFileType::DDS:
+		imgInfo.ImageFileFormat = D3DX11_IFF_DDS;
+		break;
+	case TextureFileType::WMP:
+		imgInfo.ImageFileFormat = D3DX11_IFF_WMP;
+		break;
+	case TextureFileType::PNG:
+		imgInfo.ImageFileFormat = D3DX11_IFF_PNG;
+		break;
+	}
+	return 0 <= D3DX11CreateTextureFromFileA(handleManager[hd->parent->handle]->device, filename, nullptr, nullptr, &hd->data, nullptr);
 }
 
 }

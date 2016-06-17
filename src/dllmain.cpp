@@ -1,5 +1,4 @@
 ﻿#include "base.hpp"
-//你的unresolved symbol是因为没有载入这个winSDK的lib
 #pragma comment(lib,"winmm.lib")
 
 BOOL WINAPI DllMain(_In_ HANDLE _HDllHandle, _In_ DWORD _Reason, _In_opt_ LPVOID _Reserved)

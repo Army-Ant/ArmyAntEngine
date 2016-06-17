@@ -12,5 +12,16 @@
     <ClInclude Include="..\..\src\AA_OpenGL_used.h">
       <Filter>2.mainOutput</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\base.hpp">
+      <Filter>1.base</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\build_end.bat">
+      <Filter>1.base</Filter>
+    </None>
+    <None Include="..\..\src\build_start.bat">
+      <Filter>1.base</Filter>
+    </None>
   </ItemGroup>
 </Project>

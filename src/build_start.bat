@@ -9,8 +9,7 @@ set ProjectPath=%2
 set TargetName=%3
 
 :CopyArmyAntLibFiles
-copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\*.h  %ProjectPath%..\..\externals\ArmyAntLib\
-copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\include\*.*  %ProjectPath%..\..\externals\ArmyAntLib\include\
+copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\inc\*.*  %ProjectPath%..\..\externals\ArmyAntLib\inc\
 copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\lib\*.lib  %ProjectPath%..\..\externals\ArmyAntLib\lib\
 copy %ProjectPath%..\..\..\ArmyAntLib\ArmyAntLib\bin\*.dll  %ProjectPath%..\..\externals\ArmyAntLib\bin\
 
