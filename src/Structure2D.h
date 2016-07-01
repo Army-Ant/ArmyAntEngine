@@ -5,14 +5,51 @@ namespace AA_Engine {
 
 namespace Algorithm {
 
-struct XmFloat3
+struct XmFloat2
 {
+public:
 	float x;
 	float y;
+	XmFloat2(float x = 0.0, float y = 0.0)
+		:x(x), y(y)
+	{
+	}
+	void Set(float posx, float posy) {
+		x = posx;
+		y = posy;
+	}
+	uint32 ToDword()const 
+	{
+		auto ret = *reinterpret_cast<const uint32*>(this);
+		return ret;
+	}
+};
+
+struct XmFloat3 : public XmFloat2
+{
 	float z;
 	XmFloat3(float x = 0.0, float y = 0.0, float z = 0.0)
-		:x(x), y(y), z(z)
+		:XmFloat2(x, y), z(z)
 	{
+	}
+	void Set(float posx, float posy, float posz)
+	{
+		XmFloat2::Set(posx, posy);
+		z = posz;
+	}
+};
+
+struct XmFloat4 : public XmFloat3
+{
+	float w;
+	XmFloat4(float x = 0.0, float y = 0.0, float z = 0.0, float w = 0.0)
+		:XmFloat3(x, y, z), w(w)
+	{
+	}
+	void Set(float posx, float posy, float posz, float posw)
+	{
+		XmFloat3::Set(posx, posy, posz);
+		w = posw;
 	}
 };
 

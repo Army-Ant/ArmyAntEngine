@@ -56,21 +56,54 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	unsigned int width = dimensions.right - dimensions.left;
 	unsigned int height = dimensions.bottom - dimensions.top;
 
-	auto ret = new AA_Engine::AA_D3dRef::D3dBase(hwnd, 1, 1, 0, 60, width, height);
-	AAAssert(ret->CreateViewport(),-2);
-	AA_Engine::Algorithm::XmFloat3 vertices[] =
-	{
-		AA_Engine::Algorithm::XmFloat3(0.0f, 0.8f, 0.5f),
-		AA_Engine::Algorithm::XmFloat3(0.6f, -0.4f, 0.5f),
-		AA_Engine::Algorithm::XmFloat3(-0.6f, -0.4f, 0.5f),
+	struct VertexData {
+		AA_Engine::Algorithm::XmFloat3 f;
+		AA_Engine::Algorithm::XmFloat4 c;
 	};
-	auto buffer = ret->MakeBuffer(AA_Engine::AA_D3dRef::BufferType::Vertex, sizeof(AA_Engine::Algorithm::XmFloat3) * 4, vertices);
-	AAAssert(buffer != nullptr,-1);
-	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", true, "VertexShaderMain"),-3);
-	AAAssert(buffer->CreateInputLayout(1, AA_Engine::Algorithm::Color32(0x0000007f)),-4);
-	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", false, "PixelShaderMain"),-5);
-	AAAssert(buffer->CreateBuffer(),-6);
-	ret->ResetViewport(0x00ffffff);
+
+	struct Texture2DData {
+		AA_Engine::Algorithm::XmFloat3 f;
+		AA_Engine::Algorithm::XmFloat2 d;
+	};
+
+	auto ret = new AA_Engine::AA_D3dRef::D3dBase(hwnd, 1, 1, 0, 60, width, height);
+	auto cam = AA_Engine::AA_D3dRef::D3dCamera();
+	cam.SetPosition(0.0f, 0.0f, -10.0f);
+	AAAssert(ret->CreateViewport(0.1f, 1000.f), -1);
+	AAAssert(ret->ResetViewport(AA_Engine::Algorithm::Color32(0, 0, 127, 255)), -1);
+	uint32 indices[] = { 0,1,2 };
+	VertexData vertices[] =
+	{
+		{AA_Engine::Algorithm::XmFloat3(-0.9f, -0.9f, 0.0f),AA_Engine::Algorithm::XmFloat4(0.0f, 1.0f, 0.0f, 1.0f)},
+		{AA_Engine::Algorithm::XmFloat3(0.0f, 0.9f, 0.0f),AA_Engine::Algorithm::XmFloat4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{AA_Engine::Algorithm::XmFloat3(0.9f, -0.9f, 0.0f),AA_Engine::Algorithm::XmFloat4(0.0f, 1.0f, 0.0f, 1.0f) }
+	};
+	Texture2DData textureFrame[] =
+	{
+		{ AA_Engine::Algorithm::XmFloat3(1.f, 1.f, 1.f),AA_Engine::Algorithm::XmFloat2(1, 1) },
+		{ AA_Engine::Algorithm::XmFloat3(1.f, -1.f, 1.f),AA_Engine::Algorithm::XmFloat2(1, 1) },
+		{ AA_Engine::Algorithm::XmFloat3(-1.f, -1.f, 1.f),AA_Engine::Algorithm::XmFloat2(1, 1) },
+		{ AA_Engine::Algorithm::XmFloat3(-1.f, -1.f, 1.f),AA_Engine::Algorithm::XmFloat2(1, 1) },
+		{ AA_Engine::Algorithm::XmFloat3(-1.f, 1.f, 1.f),AA_Engine::Algorithm::XmFloat2(1, 1) },
+		{ AA_Engine::Algorithm::XmFloat3(1.f, 1.f, 1.f),AA_Engine::Algorithm::XmFloat2(1, 1) }
+	};
+	auto buffer = ret->MakeBuffer();
+	auto tex = ret->CreateTexture("101-CF_Lava01.png", AA_Engine::AA_D3dRef::TextureFileType::PNG);
+#if 1
+	AAAssert(buffer->SetVertexData(3, sizeof(VertexData) * 3, vertices), -2);
+	AAAssert(buffer->SetIndexData(indices, sizeof(uint32) * 3), -2);
+	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", true, "VertexShaderMain_Triangle"),-3);
+	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", false, "PixelShaderMain_Triangle"),-5);
+	AAAssert(buffer->CreateInputLayout(AA_Engine::AA_D3dRef::DataType::Float3, AA_Engine::AA_D3dRef::DataType::Float4, AA_Engine::AA_D3dRef::DataType::Null), -4);
+#else
+	AAAssert(buffer->SetVertexData(6, sizeof(Texture2DData) * 6, textureFrame), -2);
+	AAAssert(buffer->SetTextureData(*tex),-2);
+	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", true, "VertexShaderMain_Texture"), -3);
+	AAAssert(buffer->CreateInputLayout(AA_Engine::AA_D3dRef::DataType::Float3, AA_Engine::AA_D3dRef::DataType::Float2), -4);
+	AAAssert(buffer->CreateShader("D3D11Shader.hlsl", false, "PixelShaderMain_Texture"), -5);
+	AAAssert(buffer->CreateView(AA_Engine::AA_D3dRef::DataType::Null), -5);
+#endif
+	ret->ResetViewport(0xffffffff);
 	
 	MSG msg = {0};
 	while(msg.message != WM_QUIT)
@@ -84,11 +117,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		{
 			//Update 
 			//Draw     
-			AAAssert(buffer->Render(),-7);
+			AAAssert(buffer->Render(cam),-7);
 		}
 	}
 	//Demo Shutdown 
 	ret->ReleaseBuffer(buffer);
+	ret->RemoveTexture(tex);
 	ArmyAnt::Fragment::AA_SAFE_DEL(ret);
 	return static_cast<int>(msg.wParam);
 }

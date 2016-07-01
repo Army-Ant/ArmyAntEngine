@@ -22,6 +22,7 @@ namespace AA_D3dRef {
 
 class D3dBuffer;
 class Texture2D;
+class D3dCamera;
 enum class TextureFileType : uint8
 {
 	Null,
@@ -34,11 +35,37 @@ enum class TextureFileType : uint8
 	PNG
 };
 
-enum class BufferType : BYTE
+enum class BufferType : uint8
+{
+	Unknown,
+	Vertex,
+	Texture2D,
+	Alpha,
+	Matrix,
+	Index,
+	Stencil
+};
+
+enum class ShaderViewType : uint8
 {
 	Vertex,
-	Picture,
-	Alpha
+	Pixel,
+	Texture,
+	Geometry,
+	Hull,
+	Domain,
+	Compute
+};
+
+enum class DataType :uint8
+{
+	Null,
+	Float2,
+	Integer2,
+	Float3,
+	Integer3,
+	Float4,
+	Integer4
 };
 
 
@@ -49,11 +76,11 @@ public:
 	virtual ~D3dBase();
 
 public:
-	bool CreateViewport();
-	bool CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth);
+	bool CreateViewport(float screenNear, float screenDepth);
+	bool CreateViewport(float x, float y, float w, float h, float minDepth, float maxDepth, float screenNear, float screenDepth);
 	bool ResetViewport(AA_Engine::Algorithm::Color32 color32 = 0xffffffff);
 
-	D3dBuffer* MakeBuffer(BufferType type, DWORD datalen, void*datas);
+	D3dBuffer* MakeBuffer();
 	bool ReleaseBuffer(D3dBuffer*buffer);
 	Texture2D* CreateTexture();
 	Texture2D* CreateTexture(const char*filename, TextureFileType type);
@@ -83,13 +110,14 @@ public:
 	~D3dBuffer();
 
 public:
-	bool SetType(BufferType type);
-	bool SetDatas(DWORD datalen, void*datas);
-	bool CreateBuffer();
-	bool CreateShader(const char*shaderCodeFile, bool isVertexShader = true, const char* EntryPoint = nullptr);
+	bool SetVertexData(uint32 vertexCount, uint32 datalen, void*datas);
+	bool SetIndexData(const uint32* indices, uint32 datalen);
+	bool SetTextureData(const Texture2D&datas);
+	bool CreateShader(const char*shaderCodeFile, bool isVertexShader, const char* EntryPoint = nullptr);
 	bool ReleaseShader(bool isVertexShader);
-	bool CreateInputLayout(DWORD pointNums, AA_Engine::Algorithm::Color32 innerColor);
-	bool Render();
+	bool CreateView(DataType type);
+	bool CreateInputLayout(DataType posType, DataType colorType, DataType texcoordType);
+	bool Render(const D3dCamera&camera);
 	D3dBase& GetDevice();
 	const D3dBase& GetDevice()const;
 
@@ -114,7 +142,26 @@ public:
 	const uint32 handle;
 };
 
+class D3D11USE_API D3dCamera
+{
+public:
+	D3dCamera();
+	D3dCamera(const D3dCamera&value);
+	D3dCamera&operator=(const D3dCamera&value);
+	~D3dCamera();
 
+public:
+	void SetPosition(float x, float y, float z);
+	void SetPosition(Algorithm::XmFloat3 pos);
+	void SetRotation(float x, float y, float z);
+	void SetRotation(Algorithm::XmFloat3 rot);
+
+	Algorithm::XmFloat3 GetPosition()const;
+	Algorithm::XmFloat3 GetRotation()const;
+
+public:
+	const uint32 handle;
+};
 
 
 } // namespace AA_D3dRef;
